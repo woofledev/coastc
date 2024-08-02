@@ -32,7 +32,7 @@ def tokenize(text):
     elif (char == "/"):
       if (text[(i + 1)] == "/"):
         _ = 0
-        while ((i < len(text)) and (text[i] != chr(10))):
+        while ((i < len(text)) and (text[i] != "\n")):
           i = (i + 1)
           _ = 0
       else:
@@ -48,12 +48,32 @@ def tokenize(text):
       else:
         out.append(_tok(char,Tokens["Equals"]))
 
-    elif (char == chr(34)):
+    elif (char == "\""):
       i = (i + 1)
       acc = ""
       _ = 0
-      while ((i < len(text)) and (text[i] != chr(34))):
-        acc = (acc + text[i])
+      while (i < len(text)):
+        if (text[i] == "\""):
+          break
+
+        if (text[i] == "\\"):
+          i = (i + 1)
+          if (i < len(text)):
+            if (text[i] == "\""):
+              acc = (acc + "\"")
+            elif (text[i] == "\\"):
+              acc = (acc + "\\")
+            elif (text[i] == "n"):
+              acc = (acc + "\n")
+            elif (text[i] == "t"):
+              acc = (acc + "\t")
+            else:
+              acc = ((acc + "\\") + text[i])
+
+
+        else:
+          acc = (acc + text[i])
+
         i = (i + 1)
         _ = 0
       out.append(_tok(acc,Tokens["Str"]))

@@ -9,7 +9,7 @@ def __lambda_1(val):
 
 
 throw = lexer.throw
-eol = chr(10)
+eol = "\n"
 try_float = __lambda_1
 def Codegen():
   lambda_c = 0
@@ -129,7 +129,7 @@ def Codegen():
         if (type(k) == float):
           out = (out + k)
         else:
-          out = (((out + chr(34)) + k) + chr(34))
+          out = (((out + "\"") + k) + "\"")
 
         if (prop["v"] == None):
           out = ((out + ": ") + k)

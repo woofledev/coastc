@@ -33,7 +33,7 @@ fn tokenize(text) {
     if (__inline("char in optable")) { out.append(_tok(char, optable[char])) }
     else if (char == "/") { // comment or divisor
       if (text[i+1] == "/") {
-        for (_=0; i<len(text) & text[i] != chr(10); _=0) { i=i+1 }  // chr(10) = \n
+        for (_=0; i<len(text) & text[i] != "\n"; _=0) { i=i+1 }
       } else { out.append(_tok(char, Tokens["BinOp"])) }
 
     } else if (char == "!") {
@@ -42,9 +42,22 @@ fn tokenize(text) {
       if (text[i+1] == "=") { i=i+1  out.append(_tok("==", Tokens["EIf"])) }
       else                  { out.append(_tok(char, Tokens["Equals"])) }
 
-    } else if (char == chr(34)) {  // chr(34) is a " but i cant use it since lexer is too simple
+    } else if (char == "\"") {
       i=i+1  acc = ""
-      for (_=0; i<len(text) & text[i] != chr(34); _=0) { acc = acc + text[i]   i=i+1 }
+      for (_=0; i<len(text); _=0) { 
+        if (text[i] == "\"") { break }
+        if (text[i] == "\\") {
+          i=i+1
+          if (i<len(text)) {
+            if (text[i] == "\"") { acc = acc + "\"" }
+            else if (text[i] == "\\") { acc = acc + "\\" }
+            else if (text[i] == "n") { acc = acc + "\n" }
+            else if (text[i] == "t") { acc = acc + "\t" }
+            else  { acc = acc + "\\" + text[i] }
+          }
+        } else { acc = acc + text[i] }
+        i=i+1
+      }
       out.append(_tok(acc, Tokens["Str"]))
     
     

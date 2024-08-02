@@ -1,7 +1,7 @@
 import "json"
 import "types, lexer"
 throw = lexer.throw
-eol = chr(10) // newline
+eol = "\n" // newline
 
 try_float = >(val) { 
   __inline("try:
@@ -128,7 +128,7 @@ fn Codegen() {
       for (i=0; i<len(node["props"]); i=i+1) {
         prop = node["props"][i]
         k = try_float(prop["k"])
-        if (type(k) == float) { out = out + k } else { out = out + chr(34) + k + chr(34) }  // add "" if not number
+        if (type(k) == float) { out = out + k } else { out = out + "\""+k+"\"" }  // add "" if not number
 
         if (prop["v"] == None) {
           out = out + ": " + k

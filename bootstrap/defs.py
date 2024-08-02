@@ -30,5 +30,5 @@ def __lambda_15(props):
   return {"t": "Object","props": props,}
 def __lambda_16(obj,prop,computed):
   return {"t": "Member","obj": obj,"prop": prop,"computed": computed,}
-Tokens = {"Int": 0,"Str": 1,"Word": 2,"BinOp": 3,"Equals": 4,"Dot": 5,"Comma": 6,"Colon": 7,"Semi": 8,"POpen": 9,"PClose": 10,"BOpen": 11,"BClose": 12,"SOpen": 13,"SClose": 14,"EIf": 15,"NEIf": 16,"Smaller": 17,"Bigger": 18,"And": 19,"Or": 20,"Import": 21,"Fn": 22,"Ret": 23,"If": 24,"Else": 25,"For": 26,"EOF": 27,}
+Tokens = {"Int": 0,"Str": 1,"Word": 2,"BinOp": 3,"Equals": 4,"Dot": 5,"Comma": 6,"Colon": 7,"Semi": 8,"POpen": 9,"PClose": 10,"BOpen": 11,"BClose": 12,"SOpen": 13,"SClose": 14,"EIf": 15,"NEIf": 16,"Smaller": 17,"Bigger": 18,"And": 19,"Or": 20,"Import": 21,"Fn": 22,"Ret": 23,"If": 24,"Else": 25,"For": 26,"While": 27,"EOF": 28,}
 Nodes = {"Main": __lambda_1,"Assign": __lambda_2,"ImportStmt": __lambda_3,"FnStmt": __lambda_4,"RetStmt": __lambda_5,"IfStmt": __lambda_6,"ForStmt": __lambda_7,"Fcall": __lambda_8,"BinOp": __lambda_9,"Word": __lambda_10,"Int": __lambda_11,"Str": __lambda_12,"Lambda": __lambda_13,"Prop": __lambda_14,"Object": __lambda_15,"Member": __lambda_16,}

@@ -4,7 +4,7 @@ Tokens = {
   Equals: 4, Dot: 5, Comma: 6, Colon: 7, Semi: 8,
   POpen: 9, PClose: 10, BOpen: 11, BClose: 12, SOpen: 13, SClose: 14, // p=(), b={}, s={}
   EIf: 15, NEIf: 16, Smaller: 17, Bigger: 18, And: 19, Or: 20,        // EIf==, NEIf!=, Smaller<, Bigger>
-  Import: 21, Fn: 22, Ret: 23, If: 24, Else: 25, For: 26,  EOF: 27,
+  Import: 21, Fn: 22, Ret: 23, If: 24, Else: 25,  For: 26, While: 27, EOF: 28,
 }
 
 Nodes = {
