@@ -1,0 +1,149 @@
+import "json"
+import "types, lexer"
+throw = lexer.throw
+eol = chr(10) // newline
+
+try_float = >(val) { 
+  __inline("try:
+    f = float(val)
+    if f.is_integer(): return int(f)
+    return f")
+  __inline("except Exception: return val") 
+}
+
+
+fn Codegen() {
+  lambda_c = 0
+  indent_c = 0
+  head = ""
+  out = ""
+  fn setIndent(v) { __inline("nonlocal indent_c") indent_c = v }
+
+  fn idt() { return "  " * indent_c }
+  fn parse_block(body) {
+    cg = Codegen()
+    cg.setIndent(indent_c+1)
+    return cg.run({t: "Main", body})
+  }
+
+
+  fn run(node) {
+    __inline("nonlocal out, head, indent_c, lambda_c")
+    if (node["t"] == "Main") {
+      for (i=0; i<len(node["body"]); i=i+1) {
+        out = out + idt()
+        run(node["body"][i])  out = out + eol
+      }
+      out = head + out
+      return out
+    } else if (node["t"] == "Assign") {
+      run(node["key"])
+      out = out + " = "
+      run(node["val"])
+    } else if (node["t"] == "ImportStmt") {
+      head = head + "import {}{}".format(node["mod"], eol)
+    } else if (node["t"] == "RetStmt") {
+      out = out + "return "
+      run(node["expr"])
+    } else if (node["t"] == "FnStmt") {
+      out = out + "def {}({}):{}".format(node["name"], ",".join(node["args"]), eol)
+      out = out + parse_block(node["body"])
+    
+    } else if (node["t"] == "IfStmt") {
+      out = out + "if "
+      run(node["expr"])
+      out = out + ":{}".format(eol)
+      out = out + parse_block(node["body"])
+
+      if (len(node["alt"]) > 0 & node["alt"][0]["t"] == "IfStmt") {
+        out = out + idt() + "el"  // Since the next run will be the if stmt, it will become "elif "
+        run(node["alt"][0])
+      } else if (len(node["alt"]) > 0) {
+        out = out + idt() + "else:{}".format(eol)
+        out = out + parse_block(node["alt"])
+      }
+    } else if (node["t"] == "ForStmt") {
+      run(node["init"])
+      out = out + "{}{}while ".format(eol, idt())
+      run(node["expr"])
+      out = out + ":{}".format(eol)
+
+      out = out + parse_block(node["body"])
+      indent_c = indent_c+1
+      out = out + idt()
+      run(node["after"])
+      indent_c = indent_c-1
+    
+
+    } else if (node["t"] == "Fcall") {
+      if (node["caller"]["t"] == "Word" & node["caller"]["val"] == "__inline") {
+        out = out + node["args"][0]["val"]  // str type
+      } else {
+        run(node["caller"])
+        out = out + "("
+        for (i=0; i<len(node["args"]); i=i+1) {
+          run(node["args"][i])
+          out = out + ","
+        }
+
+        if (out[0-1] == ",") {  // slice last comma if its there
+          out = __inline("out[:-1]")
+        }
+        out = out + ")"
+      }
+    } else if (node["t"] == "BinOp") {
+      if (node["op"] == "&") { node["op"] = "and" }
+      else if (node["op"] == "|") { node["op"] = "or" }
+
+      out = out + "("
+      run(node["l"])
+      out = out + " {} ".format(node["op"])
+      run(node["r"])
+      out = out + ")"
+    } else if (node["t"] == "Member") {
+      if (node["computed"] == True) {
+        run(node["obj"])
+        out=out+"["
+        run(node["prop"])
+        out=out+"]"
+      } else {
+        run(node["obj"])
+        out=out+"."
+        run(node["prop"])
+      }
+    
+    } else if (node["t"] == "Word" | node["t"] == "Int") {
+      out = out + str( try_float(node["val"]) )
+    } else if (node["t"] == "Str") {
+      out = out + json.dumps(node["val"])
+    } else if (node["t"] == "Lambda") {
+      lambda_c = lambda_c + 1
+      head = head + "def __lambda_{}({}):{}".format(lambda_c, ",".join(node["args"]), eol)
+      head = head + parse_block(node["body"])
+      
+      out = out + "__lambda_{}".format(lambda_c)
+    
+    } else if (node["t"] == "Object") {
+      out = out + "{"
+      for (i=0; i<len(node["props"]); i=i+1) {
+        prop = node["props"][i]
+        k = try_float(prop["k"])
+        if (type(k) == float) { out = out + k } else { out = out + chr(34) + k + chr(34) }  // add "" if not number
+
+        if (prop["v"] == None) {
+          out = out + ": " + k
+        } else {
+          out = out + ": "
+          run(prop["v"])
+        }
+        out = out + ","
+      }
+      out = out + "}"
+    } else {
+      throw("unimplemented node type: {}".format(node["t"]))
+    }
+  }
+
+  exports = {run, setIndent}
+  return types.SimpleNamespace(__inline("**exports"))
+}

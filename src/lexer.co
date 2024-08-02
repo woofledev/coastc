@@ -1,0 +1,76 @@
+import "defs, re"
+Tokens = defs.Tokens
+
+isalpha = >(c, first) {
+  if (first) {
+    return bool(re.match("^[A-Za-z_]+$", c))
+  } else {
+    return bool(re.match("^[A-Za-z0-9_]+$", c))
+  }
+}
+isint = >(c) { return bool(re.match("^[0-9]+$", c)) }
+isnone = >(c) { return bool(re.match("^\s*$" ,c)) }
+throw = >(msg) { __inline("raise Exception(msg)") }
+
+_tok = >(v, c) { return __inline("[v, c]") }
+
+
+fn tokenize(text) {
+  out = __inline("[]")  // yeah no array support for now
+  optable = {
+    "(": Tokens["POpen"], ")": Tokens["PClose"], "{": Tokens["BOpen"], "}": Tokens["BClose"],  "[": Tokens["SOpen"], "]": Tokens["SClose"],
+    "+": Tokens["BinOp"], "-": Tokens["BinOp"], "*": Tokens["BinOp"], "%": Tokens["BinOp"],   "<": Tokens["Smaller"], ">": Tokens["Bigger"], 
+    ".": Tokens["Dot"],   ",": Tokens["Comma"], ":": Tokens["Colon"], ";": Tokens["Semi"],    "&": Tokens["And"],     "|": Tokens["Or"],
+  }
+  keywords = {
+    "import": Tokens["Import"],
+    "fn": Tokens["Fn"], "return": Tokens["Ret"],
+    "if": Tokens["If"], "else": Tokens["Else"], "for": Tokens["For"],
+  }
+
+  for (i=0; i<len(text); i=i+1) {
+    char = text[i]
+    if (__inline("char in optable")) { out.append(_tok(char, optable[char])) }
+    else if (char == "/") { // comment or divisor
+      if (text[i+1] == "/") {
+        for (_=0; i<len(text) & text[i] != chr(10); _=0) { i=i+1 }  // chr(10) = \n
+      } else { out.append(_tok(char, Tokens["BinOp"])) }
+
+    } else if (char == "!") {
+      i=i+1   out.append(_tok("!=", Tokens["NEIf"]))
+    } else if (char == "=") {
+      if (text[i+1] == "=") { i=i+1  out.append(_tok("==", Tokens["EIf"])) }
+      else                  { out.append(_tok(char, Tokens["Equals"])) }
+
+    } else if (char == chr(34)) {  // chr(34) is a " but i cant use it since lexer is too simple
+      i=i+1  acc = ""
+      for (_=0; i<len(text) & text[i] != chr(34); _=0) { acc = acc + text[i]   i=i+1 }
+      out.append(_tok(acc, Tokens["Str"]))
+    
+    
+    } else if (isint(char)) {
+      acc = ""  hasDot = False
+      for (_=0; i<len(text) & (isint(text[i]) | (text[i] == "." & hasDot != True)); _=0) {
+        if (text[i] == ".") { hasDot = True }
+        acc = acc + text[i]
+        i=i+1
+      }
+
+      out.append(_tok(acc, Tokens["Int"]))
+      i=i-1
+    } else if (isalpha(char, True)) {
+      acc = ""
+      for (_=0; i<len(text) & isalpha(text[i], False); _=0) { acc = acc + text[i]   i=i+1 }
+
+      tok = Tokens["Word"]
+      if (__inline("acc in keywords")) { tok = keywords[acc] }
+      out.append(_tok(acc, tok))
+      i=i-1
+    } else if (isnone(char) != True) {
+      throw("lexer:unrecognized: " + char)
+    }
+  }
+
+  out.append(_tok("<EOF>", Tokens["EOF"]))
+  return out
+}

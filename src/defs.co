@@ -1,0 +1,29 @@
+// lexing & parsing tables
+Tokens = {
+  Int: 0, Str: 1, Word: 2, BinOp: 3,
+  Equals: 4, Dot: 5, Comma: 6, Colon: 7, Semi: 8,
+  POpen: 9, PClose: 10, BOpen: 11, BClose: 12, SOpen: 13, SClose: 14, // p=(), b={}, s={}
+  EIf: 15, NEIf: 16, Smaller: 17, Bigger: 18, And: 19, Or: 20,        // EIf==, NEIf!=, Smaller<, Bigger>
+  Import: 21, Fn: 22, Ret: 23, If: 24, Else: 25, For: 26,  EOF: 27,
+}
+
+Nodes = {
+  Main: >(body)  {return {t:"Main", body}},
+  Assign: >(key, val) {return {t:"Assign", key, val}},
+  ImportStmt: >(mod)  {return {t:"ImportStmt", mod}},
+  FnStmt: >(name, args, body) {return {t:"FnStmt", name, args, body}},
+  RetStmt: >(expr)            {return {t:"RetStmt", expr}},
+  IfStmt: >(expr, body, alt)  {return {t:"IfStmt", expr, body, alt}},
+  ForStmt: >(init, expr, after, body) {return {t:"ForStmt", init, expr, after, body}},
+
+  Fcall: >(caller, args) {return {t:"Fcall", caller, args}},
+  BinOp: >(l, r, op)  {return {t:"BinOp", l, r, op}},
+  Word: >(val)  {return {t:"Word", val}},
+  Int: >(val)   {return {t:"Int", val}},
+  Str: >(val)   {return {t:"Str", val}},
+  Lambda: >(args, body) {return {t:"Lambda", args, body}},
+  
+  Prop:  >(k, v)   {return {t:"Prop", k, v}}, 
+  Object: >(props) {return {t: "Object", props}},
+  Member: >(obj, prop, computed) {return {t:"Member", obj, prop, computed}},
+}
