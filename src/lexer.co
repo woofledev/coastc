@@ -12,11 +12,11 @@ isint = >(c) { return bool(re.match("^[0-9]+$", c)) }
 isnone = >(c) { return bool(re.match("^\s*$" ,c)) }
 throw = >(msg) { __inline("raise Exception(msg)") }
 
-_tok = >(v, c) { return __inline("[v, c]") }
+_tok = >(v, c) { return [v, c] }
 
 
 fn tokenize(text) {
-  out = __inline("[]")  // yeah no array support for now
+  out = []
   optable = {
     "(": Tokens["POpen"], ")": Tokens["PClose"], "{": Tokens["BOpen"], "}": Tokens["BClose"],  "[": Tokens["SOpen"], "]": Tokens["SClose"],
     "+": Tokens["BinOp"], "-": Tokens["BinOp"], "*": Tokens["BinOp"], "%": Tokens["BinOp"],   "<": Tokens["Smaller"], ">": Tokens["Bigger"], 
@@ -26,6 +26,7 @@ fn tokenize(text) {
     "import": Tokens["Import"],
     "fn": Tokens["Fn"], "return": Tokens["Ret"],
     "if": Tokens["If"], "else": Tokens["Else"], "for": Tokens["For"],
+    "while": Tokens["While"], "class": Tokens["Class"],
   }
 
   for (i=0; i<len(text); i=i+1) {

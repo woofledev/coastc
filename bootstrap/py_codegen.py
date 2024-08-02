@@ -73,6 +73,15 @@ def Codegen():
       out = (out + idt())
       run(node["after"])
       indent_c = (indent_c - 1)
+    elif (node["t"] == "WhileStmt"):
+      out = (out + "{}{}while ".format(eol,idt()))
+      run(node["expr"])
+      out = (out + ":{}".format(eol))
+      out = (out + parse_block(node["body"]))
+    elif (node["t"] == "ClassStmt"):
+      out = (out + "{}class ".format(idt()))
+      out = (out + "{}({}):\n".format(node["name"],",".join(node["inherits"])))
+      out = (out + parse_block(node["body"]))
     elif (node["t"] == "Fcall"):
       if ((node["caller"]["t"] == "Word") and (node["caller"]["val"] == "__inline")):
         out = (out + node["args"][0]["val"])
@@ -140,6 +149,14 @@ def Codegen():
         out = (out + ",")
         i = (i + 1)
       out = (out + "}")
+    elif (node["t"] == "Array"):
+      out = (out + "[")
+      i = 0
+      while (i < len(node["props"])):
+        run(node["props"][i])
+        out = (out + ",")
+        i = (i + 1)
+      out = (out + "]")
     else:
       throw("unimplemented node type: {}".format(node["t"]))
 

@@ -4,9 +4,8 @@ Tokens = defs.Tokens
 Nodes = defs.Nodes
 throw = lexer.throw
 
-lst = __inline("lambda *args: list(args)")
 fn Parser() {
-  tokens = lst()
+  tokens = []
 
   fn _pop() {
     __inline("nonlocal tokens")
@@ -15,14 +14,14 @@ fn Parser() {
   fn _expect(tok, err) {
     __inline("nonlocal tokens")
     prev = _pop()
-    if (__inline("not prev") | prev[1] != tok) { throw("parser: {}, got {}".format(err, "???")) }
+    if (__inline("not prev") | prev[1] != tok) { throw("parser: {}, got {}".format(err, str(tok[0]) )) }
     return prev
   }
 
   fn parse(text) {
     __inline("nonlocal tokens")
     tokens = lexer.tokenize(text)
-    prog = Nodes["Main"](lst())
+    prog = Nodes["Main"]([])
     for (_=0; tokens[0][1] != Tokens["EOF"]; _=0) { prog["body"].append(_stmt()) }
     return prog
   }
@@ -33,6 +32,8 @@ fn Parser() {
     else if (tokens[0][1] == Tokens["Ret"]) { return _stmt_ret() }
     else if (tokens[0][1] == Tokens["If"]) { return _stmt_if() }
     else if (tokens[0][1] == Tokens["For"]) { return _stmt_for() }
+    else if (tokens[0][1] == Tokens["While"]) { return _stmt_while() }
+    else if (tokens[0][1] == Tokens["Class"]) { return _stmt_class() }
     else { return _expr() }
   }
 
@@ -53,7 +54,7 @@ fn Parser() {
   }
   fn _expr_lambda() { // >(args) {block} 
     _pop()
-    params = lst()
+    params = []
 
     args = _args()
     for (i=0; i<len(args); i=i+1) {
@@ -65,8 +66,8 @@ fn Parser() {
   }
 
   fn _expr_obj() {
-    if (tokens[0][1] != Tokens["BOpen"]) { return _expr_logic() }
-    props = lst()
+    if (tokens[0][1] != Tokens["BOpen"]) { return _expr_arr() }
+    props = []
     _pop()
 
     for (_=0; tokens[0][1] != Tokens["EOF"] & tokens[0][1] != Tokens["BClose"]; _=0) {
@@ -91,10 +92,23 @@ fn Parser() {
     return Nodes["Object"](props)
   }
 
+  fn _expr_arr() {
+    if (tokens[0][1] != Tokens["SOpen"]) { return _expr_logic() }
+    props = []
+    _pop()
+    for (_=0; tokens[0][1] != Tokens["EOF"] & tokens[0][1] != Tokens["SClose"]; _=0) {
+      props.append(_expr())
+      if (tokens[0][1] == Tokens["Comma"]) { _pop() }
+    }
+
+    _expect(Tokens["SClose"], "expected ] after array")
+    return Nodes["Array"](props)
+  }
+
 
   fn _expr_logic() {
     left = _expr_math()
-    if ((lst("&", "|")).__contains__(tokens[0][0])) {
+    if ((["&", "|"]).__contains__(tokens[0][0])) {
       op = (_pop())[0]
       left = Nodes["BinOp"](left, _expr_math(), op)
     }
@@ -102,7 +116,7 @@ fn Parser() {
   }
   fn _expr_math() {
     left = _expr_call()
-    for (_=0; (lst("+", "-", "*", "/", "%", "<", ">", "==", "!=")).__contains__(tokens[0][0]); _=0) {
+    for (_=0; (["+", "-", "*", "/", "%", "<", ">", "==", "!="]).__contains__(tokens[0][0]); _=0) {
       op = (_pop())[0]
       left = Nodes["BinOp"](left, _expr_call(), op)
     }
@@ -165,7 +179,7 @@ fn Parser() {
   fn _stmt_fn() {
     _pop()
     name = (_expect(Tokens["Word"], "expected name after fn"))[0]
-    params = lst()
+    params = []
 
     args = _args()
     for (i=0; i<len(args); i=i+1) {
@@ -187,14 +201,15 @@ fn Parser() {
     _expect(Tokens["PClose"], "expected ) after if")
     body = _block()
 
-    alt = lst()
+    alt = []
     if (tokens[0][1] == Tokens["Else"]) {
       _pop()
-      if (tokens[0][1] == Tokens["If"]) { alt = lst(_stmt_if()) }
+      if (tokens[0][1] == Tokens["If"]) { alt = [_stmt_if()] }
                                   else  { alt = _block() }
     }
     return Nodes["IfStmt"](cond, body, alt)
   }
+
   fn _stmt_for() {
     _pop()
     _expect(Tokens["POpen"], "expected ( after for")
@@ -206,6 +221,28 @@ fn Parser() {
     _expect(Tokens["PClose"], "expected ) after for")
 
     return Nodes["ForStmt"](init, cond, after, _block())
+  }
+  fn _stmt_while() {
+    _pop()
+    _expect(Tokens["POpen"], "expected ( after while")
+    cond = _expr()
+    _expect(Tokens["PClose"], "expected ) after while")
+
+    return Nodes["WhileStmt"](cond, _block())
+  }
+
+  fn _stmt_class() {
+    _pop()
+    name = (_expect(Tokens["Word"], "expected Word after class"))[0]
+    inherits = []
+
+    args = _args()
+    for (i=0; i<len(args); i=i+1) {
+      if (args[i]["t"] != "Word") {throw("parser: expected class inherits to be Word")}
+      inherits.append(args[i]["val"])
+    }
+
+    return Nodes["ClassStmt"](name, inherits, _block())
   }
 
 
@@ -220,14 +257,14 @@ fn Parser() {
       return left
     }
 
-    args = lst(parse())
+    args = [parse()]
     for (_=0; tokens[0][1] == Tokens["Comma"] & _pop(); _=0) { args.append(parse()) }
     return args
   }
 
   fn _args() {
     _expect(Tokens["POpen"], "expected ( in args")
-    args = lst()
+    args = []
     if (tokens[0][1] != Tokens["PClose"]) { args = __arglist() }
     _expect(Tokens["PClose"], "expected ) in args")
     return args
@@ -235,7 +272,7 @@ fn Parser() {
 
   fn _block() {
     _expect(Tokens["BOpen"], "expected { in block")
-    body = lst()
+    body = []
     for (_=0; tokens[0][1] != Tokens["EOF"] & tokens[0][1] != Tokens["BClose"]; _=0) {
       body.append(_stmt())
     }

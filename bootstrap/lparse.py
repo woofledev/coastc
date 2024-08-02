@@ -5,9 +5,8 @@ import types
 Tokens = defs.Tokens
 Nodes = defs.Nodes
 throw = lexer.throw
-lst = lambda *args: list(args)
 def Parser():
-  tokens = lst()
+  tokens = []
   def _pop():
     nonlocal tokens
     return tokens.pop(0)
@@ -16,14 +15,14 @@ def Parser():
     nonlocal tokens
     prev = _pop()
     if (not prev or (prev[1] != tok)):
-      throw("parser: {}, got {}".format(err,"???"))
+      throw("parser: {}, got {}".format(err,str(tok[0])))
 
     return prev
 
   def parse(text):
     nonlocal tokens
     tokens = lexer.tokenize(text)
-    prog = Nodes["Main"](lst())
+    prog = Nodes["Main"]([])
     _ = 0
     while (tokens[0][1] != Tokens["EOF"]):
       prog["body"].append(_stmt())
@@ -41,6 +40,10 @@ def Parser():
       return _stmt_if()
     elif (tokens[0][1] == Tokens["For"]):
       return _stmt_for()
+    elif (tokens[0][1] == Tokens["While"]):
+      return _stmt_while()
+    elif (tokens[0][1] == Tokens["Class"]):
+      return _stmt_class()
     else:
       return _expr()
 
@@ -61,7 +64,7 @@ def Parser():
 
   def _expr_lambda():
     _pop()
-    params = lst()
+    params = []
     args = _args()
     i = 0
     while (i < len(args)):
@@ -74,9 +77,9 @@ def Parser():
 
   def _expr_obj():
     if (tokens[0][1] != Tokens["BOpen"]):
-      return _expr_logic()
+      return _expr_arr()
 
-    props = lst()
+    props = []
     _pop()
     _ = 0
     while ((tokens[0][1] != Tokens["EOF"]) and (tokens[0][1] != Tokens["BClose"])):
@@ -101,9 +104,25 @@ def Parser():
     _expect(Tokens["BClose"],"expected } after object")
     return Nodes["Object"](props)
 
+  def _expr_arr():
+    if (tokens[0][1] != Tokens["SOpen"]):
+      return _expr_logic()
+
+    props = []
+    _pop()
+    _ = 0
+    while ((tokens[0][1] != Tokens["EOF"]) and (tokens[0][1] != Tokens["SClose"])):
+      props.append(_expr())
+      if (tokens[0][1] == Tokens["Comma"]):
+        _pop()
+
+      _ = 0
+    _expect(Tokens["SClose"],"expected ] after array")
+    return Nodes["Array"](props)
+
   def _expr_logic():
     left = _expr_math()
-    if lst("&","|").__contains__(tokens[0][0]):
+    if ["&","|",].__contains__(tokens[0][0]):
       op = _pop()[0]
       left = Nodes["BinOp"](left,_expr_math(),op)
 
@@ -112,7 +131,7 @@ def Parser():
   def _expr_math():
     left = _expr_call()
     _ = 0
-    while lst("+","-","*","/","%","<",">","==","!=").__contains__(tokens[0][0]):
+    while ["+","-","*","/","%","<",">","==","!=",].__contains__(tokens[0][0]):
       op = _pop()[0]
       left = Nodes["BinOp"](left,_expr_call(),op)
       _ = 0
@@ -176,7 +195,7 @@ def Parser():
   def _stmt_fn():
     _pop()
     name = _expect(Tokens["Word"],"expected name after fn")[0]
-    params = lst()
+    params = []
     args = _args()
     i = 0
     while (i < len(args)):
@@ -197,11 +216,11 @@ def Parser():
     cond = _expr()
     _expect(Tokens["PClose"],"expected ) after if")
     body = _block()
-    alt = lst()
+    alt = []
     if (tokens[0][1] == Tokens["Else"]):
       _pop()
       if (tokens[0][1] == Tokens["If"]):
-        alt = lst(_stmt_if())
+        alt = [_stmt_if(),]
       else:
         alt = _block()
 
@@ -219,6 +238,27 @@ def Parser():
     _expect(Tokens["PClose"],"expected ) after for")
     return Nodes["ForStmt"](init,cond,after,_block())
 
+  def _stmt_while():
+    _pop()
+    _expect(Tokens["POpen"],"expected ( after while")
+    cond = _expr()
+    _expect(Tokens["PClose"],"expected ) after while")
+    return Nodes["WhileStmt"](cond,_block())
+
+  def _stmt_class():
+    _pop()
+    name = _expect(Tokens["Word"],"expected Word after class")[0]
+    inherits = []
+    args = _args()
+    i = 0
+    while (i < len(args)):
+      if (args[i]["t"] != "Word"):
+        throw("parser: expected class inherits to be Word")
+
+      inherits.append(args[i]["val"])
+      i = (i + 1)
+    return Nodes["ClassStmt"](name,inherits,_block())
+
   def __arglist():
     def parse():
       left = _expr()
@@ -228,7 +268,7 @@ def Parser():
 
       return left
 
-    args = lst(parse())
+    args = [parse(),]
     _ = 0
     while ((tokens[0][1] == Tokens["Comma"]) and _pop()):
       args.append(parse())
@@ -237,7 +277,7 @@ def Parser():
 
   def _args():
     _expect(Tokens["POpen"],"expected ( in args")
-    args = lst()
+    args = []
     if (tokens[0][1] != Tokens["PClose"]):
       args = __arglist()
 
@@ -246,7 +286,7 @@ def Parser():
 
   def _block():
     _expect(Tokens["BOpen"],"expected { in block")
-    body = lst()
+    body = []
     _ = 0
     while ((tokens[0][1] != Tokens["EOF"]) and (tokens[0][1] != Tokens["BClose"])):
       body.append(_stmt())

@@ -12,7 +12,7 @@ def __lambda_3(c):
 def __lambda_4(msg):
   raise Exception(msg)
 def __lambda_5(v,c):
-  return [v, c]
+  return [v,c,]
 
 Tokens = defs.Tokens
 isalpha = __lambda_1
@@ -23,7 +23,7 @@ _tok = __lambda_5
 def tokenize(text):
   out = []
   optable = {"(": Tokens["POpen"],")": Tokens["PClose"],"{": Tokens["BOpen"],"}": Tokens["BClose"],"[": Tokens["SOpen"],"]": Tokens["SClose"],"+": Tokens["BinOp"],"-": Tokens["BinOp"],"*": Tokens["BinOp"],"%": Tokens["BinOp"],"<": Tokens["Smaller"],">": Tokens["Bigger"],".": Tokens["Dot"],",": Tokens["Comma"],":": Tokens["Colon"],";": Tokens["Semi"],"&": Tokens["And"],"|": Tokens["Or"],}
-  keywords = {"import": Tokens["Import"],"fn": Tokens["Fn"],"return": Tokens["Ret"],"if": Tokens["If"],"else": Tokens["Else"],"for": Tokens["For"],}
+  keywords = {"import": Tokens["Import"],"fn": Tokens["Fn"],"return": Tokens["Ret"],"if": Tokens["If"],"else": Tokens["Else"],"for": Tokens["For"],"while": Tokens["While"],"class": Tokens["Class"],}
   i = 0
   while (i < len(text)):
     char = text[i]

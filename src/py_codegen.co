@@ -67,14 +67,24 @@ fn Codegen() {
       out = out + "{}{}while ".format(eol, idt())
       run(node["expr"])
       out = out + ":{}".format(eol)
-
       out = out + parse_block(node["body"])
+
       indent_c = indent_c+1
       out = out + idt()
       run(node["after"])
       indent_c = indent_c-1
-    
+    } else if (node["t"] == "WhileStmt") {
+      out = out + "{}{}while ".format(eol, idt())
+      run(node["expr"])
+      out = out + ":{}".format(eol)
+      out = out + parse_block(node["body"])
 
+    } else if (node["t"] == "ClassStmt") {
+      out = out + "{}class ".format(idt())
+      out = out + "{}({}):\n".format(node["name"], ",".join(node["inherits"]))
+      out = out + parse_block(node["body"])
+
+  
     } else if (node["t"] == "Fcall") {
       if (node["caller"]["t"] == "Word" & node["caller"]["val"] == "__inline") {
         out = out + node["args"][0]["val"]  // str type
@@ -139,6 +149,14 @@ fn Codegen() {
         out = out + ","
       }
       out = out + "}"
+    } else if (node["t"] == "Array") {
+      out = out + "["
+      for (i=0; i<len(node["props"]); i=i+1) {
+        run(node["props"][i])
+        out = out + ","
+      }
+      out = out + "]"
+      
     } else {
       throw("unimplemented node type: {}".format(node["t"]))
     }
