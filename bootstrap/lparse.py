@@ -32,7 +32,7 @@ def Parser():
   def _stmt():
     if (tokens[0][1] == Tokens["Import"]):
       return _stmt_import()
-    elif (tokens[0][1] == Tokens["Fn"]):
+    elif ((tokens[0][1] == Tokens["Fn"]) or (tokens[0][1] == Tokens["Async"])):
       return _stmt_fn()
     elif (tokens[0][1] == Tokens["Ret"]):
       return _stmt_ret()
@@ -140,7 +140,8 @@ def Parser():
   def _expr_call():
     def _call(caller):
       e = Nodes["Fcall"](caller,_args())
-      if (tokens[0][1] == Tokens["POpen"]):
+      
+      while (tokens[0][1] == Tokens["POpen"]):
         e = _call(e)
 
       return e
@@ -193,7 +194,11 @@ def Parser():
     return Nodes["ImportStmt"](val)
 
   def _stmt_fn():
-    _pop()
+    isAsync = False
+    if (_pop()[1] == Tokens["Async"]):
+      isAsync = True
+      _pop()
+
     name = _expect(Tokens["Word"],"expected name after fn")[0]
     params = []
     args = _args()
@@ -204,7 +209,7 @@ def Parser():
 
       params.append(args[i]["val"])
       i = (i + 1)
-    return Nodes["FnStmt"](name,params,_block())
+    return Nodes["FnStmt"](name,params,_block(),isAsync)
 
   def _stmt_ret():
     _pop()

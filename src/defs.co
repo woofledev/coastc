@@ -5,18 +5,18 @@ Tokens = {
   POpen: 9, PClose: 10, BOpen: 11, BClose: 12, SOpen: 13, SClose: 14, // p=(), b={}, s={}
   EIf: 15, NEIf: 16, Smaller: 17, Bigger: 18, And: 19, Or: 20,        // EIf==, NEIf!=, Smaller<, Bigger>
   Import: 21, Fn: 22, Ret: 23, If: 24, Else: 25,  For: 26, 
-  While: 27, Class: 28,  EOF: 29,
+  While: 27, Class: 28,  Async: 29, EOF: 30,
 }
 
 Nodes = {
   Main: >(body)  {return {t:"Main", body}},
   Assign: >(key, val) {return {t:"Assign", key, val}},
   ImportStmt: >(mod)  {return {t:"ImportStmt", mod}},
-  FnStmt: >(name, args, body) {return {t:"FnStmt", name, args, body}},
-  RetStmt: >(expr)            {return {t:"RetStmt", expr}},
-  IfStmt: >(expr, body, alt)  {return {t:"IfStmt", expr, body, alt}},
+  FnStmt: >(name, args, body, isAsync) {return {t:"FnStmt", name, args, body, isAsync}},
+  RetStmt: >(expr)                    {return {t:"RetStmt", expr}},
+  IfStmt: >(expr, body, alt)          {return {t:"IfStmt", expr, body, alt}},
   ForStmt: >(init, expr, after, body) {return {t:"ForStmt", init, expr, after, body}},
-  WhileStmt: >(expr, body) {return {t:"WhileStmt", expr, body}},
+  WhileStmt: >(expr, body)           {return {t:"WhileStmt", expr, body}},
   ClassStmt: >(name, inherits, body) {return {t:"ClassStmt", name, inherits, body}},
 
   Fcall: >(caller, args) {return {t:"Fcall", caller, args}},

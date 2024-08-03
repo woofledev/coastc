@@ -49,6 +49,9 @@ def Codegen():
       out = (out + "return ")
       run(node["expr"])
     elif (node["t"] == "FnStmt"):
+      if node["isAsync"]:
+        out = (out + "async ")
+
       out = (out + "def {}({}):{}".format(node["name"],",".join(node["args"]),eol))
       out = (out + parse_block(node["body"]))
     elif (node["t"] == "IfStmt"):

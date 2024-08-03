@@ -28,7 +28,7 @@ fn Parser() {
 
   fn _stmt() {
     if (tokens[0][1] == Tokens["Import"]) { return _stmt_import() }
-    else if (tokens[0][1] == Tokens["Fn"]) { return _stmt_fn() }
+    else if (tokens[0][1] == Tokens["Fn"] | tokens[0][1] == Tokens["Async"]) { return _stmt_fn() }
     else if (tokens[0][1] == Tokens["Ret"]) { return _stmt_ret() }
     else if (tokens[0][1] == Tokens["If"]) { return _stmt_if() }
     else if (tokens[0][1] == Tokens["For"]) { return _stmt_for() }
@@ -123,17 +123,17 @@ fn Parser() {
     return left
   }
 
+
   fn _expr_call() {
     fn _call(caller) {
       e = Nodes["Fcall"](caller, _args())
-      if (tokens[0][1] == Tokens["POpen"]) { e = _call(e) }
+      while (tokens[0][1] == Tokens["POpen"]) { e = _call(e) }
       return e
     }
     left = _expr_member()
     if (tokens[0][1] == Tokens["POpen"]) { return _call(left) }
     return left
   }
-
 
   fn _expr_member() {
     left = _expr_final()
@@ -151,6 +151,7 @@ fn Parser() {
     }
     return left
   }
+
 
   fn _expr_final() {
     if (tokens[0][1] == Tokens["Word"]) { return Nodes["Word"]( (_pop())[0] ) }
@@ -177,7 +178,9 @@ fn Parser() {
     return Nodes["ImportStmt"](val)
   }
   fn _stmt_fn() {
-    _pop()
+    isAsync = False
+    if ((_pop())[1] == Tokens["Async"]) { isAsync = True  _pop() }
+
     name = (_expect(Tokens["Word"], "expected name after fn"))[0]
     params = []
 
@@ -187,7 +190,7 @@ fn Parser() {
       params.append(args[i]["val"])
     }
 
-    return Nodes["FnStmt"](name, params, _block())
+    return Nodes["FnStmt"](name, params, _block(), isAsync)
   }
   fn _stmt_ret() { 
     _pop()
