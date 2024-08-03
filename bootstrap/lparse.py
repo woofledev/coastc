@@ -43,6 +43,8 @@ def Parser():
       return _stmt_while()
     elif (tokens[0][1] == Tokens["Class"]):
       return _stmt_class()
+    elif (tokens[0][1] == Tokens["Try"]):
+      return _stmt_trycatch()
     else:
       return _expr()
 
@@ -262,6 +264,14 @@ def Parser():
       inherits.append(args[i]["val"])
       i = (i + 1)
     return Nodes["ClassStmt"](name,inherits,_block())
+
+  def _stmt_trycatch():
+    _pop()
+    body = _block()
+    _expect(Tokens["Catch"],"expected catch after try")
+    asVar = [_expr_member(),_expect(Tokens["Word"],"expected var name after catch")[0],]
+    alt = _block()
+    return Nodes["TryCatch"](body,alt,asVar)
 
   def __arglist():
     def parse():

@@ -5,7 +5,8 @@ Tokens = {
   POpen: 9, PClose: 10, BOpen: 11, BClose: 12, SOpen: 13, SClose: 14, // p=(), b={}, s={}
   EIf: 15, NEIf: 16, Smaller: 17, Bigger: 18, And: 19, Or: 20,        // EIf==, NEIf!=, Smaller<, Bigger>
   Import: 21, Fn: 22, Ret: 23, If: 24, Else: 25,  For: 26, 
-  While: 27, Class: 28,  Async: 29, EOF: 30,
+  While: 27, Class: 28, Async: 29, 
+  Try: 30, Catch: 31,   EOF: 32,
 }
 
 Nodes = {
@@ -18,6 +19,7 @@ Nodes = {
   ForStmt: >(init, expr, after, body) {return {t:"ForStmt", init, expr, after, body}},
   WhileStmt: >(expr, body)           {return {t:"WhileStmt", expr, body}},
   ClassStmt: >(name, inherits, body) {return {t:"ClassStmt", name, inherits, body}},
+  TryCatch:  >(body, alt, asVar) {return {t:"TryCatch", body, alt, asVar}},
 
   Fcall: >(caller, args) {return {t:"Fcall", caller, args}},
   BinOp: >(l, r, op)  {return {t:"BinOp", l, r, op}},

@@ -1,12 +1,12 @@
 import "json, types"
 eol = "\n" // newline
 
-try_float = >(val) { 
-  __inline("try:
+try_float = >(val) {
+  try {
     f = float(val)
-    if f.is_integer(): return int(f)
+    if (f.is_integer()) { return int(f) }
     return f
-  except Exception: return val")
+  } catch Exception e { return val }
 }
 
 
@@ -79,9 +79,16 @@ fn Codegen() {
       out = out + parse_block(node["body"])
 
     } else if (node["t"] == "ClassStmt") {
-      out = out + "{}class ".format(idt())
+      out = out + idt() + "class "
       out = out + "{}({}):\n".format(node["name"], ",".join(node["inherits"]))
       out = out + parse_block(node["body"])
+    } else if (node["t"] == "TryCatch") {
+      out = out + "try:\n"
+      out = out + parse_block(node["body"])
+      out = out + idt() + "except "
+      run(node["asVar"][0])
+      out = out + " as {}:\n".format(node["asVar"][1])
+      out = out + parse_block(node["alt"])
 
   
     } else if (node["t"] == "Fcall") {
@@ -127,7 +134,7 @@ fn Codegen() {
       out = out + json.dumps(node["val"])
     } else if (node["t"] == "Lambda") {
       lambda_c = lambda_c + 1
-      head = head + "def __lambda_{}({}):{}".format(lambda_c, ",".join(node["args"]), eol)
+      head = head + idt() + "def __lambda_{}({}):{}".format(lambda_c, ",".join(node["args"]), eol)
       head = head + parse_block(node["body"])
       
       out = out + "__lambda_{}".format(lambda_c)

@@ -33,6 +33,7 @@ fn Parser() {
     else if (tokens[0][1] == Tokens["For"]) { return _stmt_for() }
     else if (tokens[0][1] == Tokens["While"]) { return _stmt_while() }
     else if (tokens[0][1] == Tokens["Class"]) { return _stmt_class() }
+    else if (tokens[0][1] == Tokens["Try"])   { return _stmt_trycatch() }
     else { return _expr() }
   }
 
@@ -245,6 +246,16 @@ fn Parser() {
     }
 
     return Nodes["ClassStmt"](name, inherits, _block())
+  }
+
+  fn _stmt_trycatch() {
+    _pop()
+    body = _block()
+    _expect(Tokens["Catch"], "expected catch after try")
+    asVar = [_expr_member(), (_expect(Tokens["Word"], "expected var name after catch"))[0]]
+    alt = _block()
+
+    return Nodes["TryCatch"](body, alt, asVar)
   }
 
 

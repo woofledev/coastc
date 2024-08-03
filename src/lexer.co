@@ -25,7 +25,7 @@ fn tokenize(text) {
     "fn": Tokens["Fn"], "return": Tokens["Ret"],
     "if": Tokens["If"], "else": Tokens["Else"], "for": Tokens["For"],
     "while": Tokens["While"], "class": Tokens["Class"],
-    "async": Tokens["Async"],
+    "async": Tokens["Async"],  "try": Tokens["Try"], "catch": Tokens["Catch"],
   }
 
   for (i=0; i<len(text); i=i+1) {

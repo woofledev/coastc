@@ -2,9 +2,13 @@ import json, types
 def __lambda_1(val):
   try:
     f = float(val)
-    if f.is_integer(): return int(f)
+    if f.is_integer():
+      return int(f)
+
     return f
-  except Exception: return val
+  except Exception as e:
+    return val
+
 
 eol = "\n"
 try_float = __lambda_1
@@ -79,9 +83,16 @@ def Codegen():
       out = (out + ":{}".format(eol))
       out = (out + parse_block(node["body"]))
     elif (node["t"] == "ClassStmt"):
-      out = (out + "{}class ".format(idt()))
+      out = ((out + idt()) + "class ")
       out = (out + "{}({}):\n".format(node["name"],",".join(node["inherits"])))
       out = (out + parse_block(node["body"]))
+    elif (node["t"] == "TryCatch"):
+      out = (out + "try:\n")
+      out = (out + parse_block(node["body"]))
+      out = ((out + idt()) + "except ")
+      run(node["asVar"][0])
+      out = (out + " as {}:\n".format(node["asVar"][1]))
+      out = (out + parse_block(node["alt"]))
     elif (node["t"] == "Fcall"):
       if ((node["caller"]["t"] == "Word") and (node["caller"]["val"] == "__inline")):
         out = (out + node["args"][0]["val"])
@@ -126,7 +137,7 @@ def Codegen():
       out = (out + json.dumps(node["val"]))
     elif (node["t"] == "Lambda"):
       lambda_c = (lambda_c + 1)
-      head = (head + "def __lambda_{}({}):{}".format(lambda_c,",".join(node["args"]),eol))
+      head = ((head + idt()) + "def __lambda_{}({}):{}".format(lambda_c,",".join(node["args"]),eol))
       head = (head + parse_block(node["body"]))
       out = (out + "__lambda_{}".format(lambda_c))
     elif (node["t"] == "Object"):
