@@ -10,8 +10,6 @@ isalpha = >(c, first) {
 }
 isint = >(c) { return bool(re.match("^[0-9]+$", c)) }
 isnone = >(c) { return bool(re.match("^\s*$" ,c)) }
-throw = >(msg) { __inline("raise Exception(msg)") }
-
 _tok = >(v, c) { return [v, c] }
 
 
@@ -19,7 +17,7 @@ fn tokenize(text) {
   out = []
   optable = {
     "(": Tokens["POpen"], ")": Tokens["PClose"], "{": Tokens["BOpen"], "}": Tokens["BClose"],  "[": Tokens["SOpen"], "]": Tokens["SClose"],
-    "+": Tokens["BinOp"], "-": Tokens["BinOp"], "*": Tokens["BinOp"], "%": Tokens["BinOp"],   "<": Tokens["Smaller"], ">": Tokens["Bigger"], 
+    "+": Tokens["BinOp"], "-": Tokens["BinOp"], "*": Tokens["BinOp"], "%": Tokens["BinOp"],   "<": Tokens["Smaller"], ">": Tokens["Bigger"], "in": Tokens["BinOp"],
     ".": Tokens["Dot"],   ",": Tokens["Comma"], ":": Tokens["Colon"], ";": Tokens["Semi"],    "&": Tokens["And"],     "|": Tokens["Or"],
   }
   keywords = {
@@ -32,7 +30,7 @@ fn tokenize(text) {
 
   for (i=0; i<len(text); i=i+1) {
     char = text[i]
-    if (__inline("char in optable")) { out.append(_tok(char, optable[char])) }
+    if (char in optable) { out.append(_tok(char, optable[char])) }
     else if (char == "/") { // comment or divisor
       if (text[i+1] == "/") {
         for (_=0; i<len(text) & text[i] != "\n"; _=0) { i=i+1 }
@@ -78,11 +76,11 @@ fn tokenize(text) {
       for (_=0; i<len(text) & isalpha(text[i], False); _=0) { acc = acc + text[i]   i=i+1 }
 
       tok = Tokens["Word"]
-      if (__inline("acc in keywords")) { tok = keywords[acc] }
+      if (acc in keywords) { tok = keywords[acc] }
       out.append(_tok(acc, tok))
       i=i-1
     } else if (isnone(char) != True) {
-      throw("lexer:unrecognized: " + char)
+      raise(Exception("lexer:unrecognized: " + char))
     }
   }
 

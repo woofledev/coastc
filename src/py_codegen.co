@@ -1,14 +1,12 @@
-import "json"
-import "types, lexer"
-throw = lexer.throw
+import "json, types"
 eol = "\n" // newline
 
 try_float = >(val) { 
   __inline("try:
     f = float(val)
     if f.is_integer(): return int(f)
-    return f")
-  __inline("except Exception: return val") 
+    return f
+  except Exception: return val")
 }
 
 
@@ -159,7 +157,7 @@ fn Codegen() {
       out = out + "]"
       
     } else {
-      throw("unimplemented node type: {}".format(node["t"]))
+      raise(Exception("unimplemented node type: {}".format(node["t"])))
     }
   }
 

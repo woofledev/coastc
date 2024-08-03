@@ -9,25 +9,22 @@ def __lambda_2(c):
   return bool(re.match("^[0-9]+$",c))
 def __lambda_3(c):
   return bool(re.match("^\\s*$",c))
-def __lambda_4(msg):
-  raise Exception(msg)
-def __lambda_5(v,c):
+def __lambda_4(v,c):
   return [v,c,]
 
 Tokens = defs.Tokens
 isalpha = __lambda_1
 isint = __lambda_2
 isnone = __lambda_3
-throw = __lambda_4
-_tok = __lambda_5
+_tok = __lambda_4
 def tokenize(text):
   out = []
-  optable = {"(": Tokens["POpen"],")": Tokens["PClose"],"{": Tokens["BOpen"],"}": Tokens["BClose"],"[": Tokens["SOpen"],"]": Tokens["SClose"],"+": Tokens["BinOp"],"-": Tokens["BinOp"],"*": Tokens["BinOp"],"%": Tokens["BinOp"],"<": Tokens["Smaller"],">": Tokens["Bigger"],".": Tokens["Dot"],",": Tokens["Comma"],":": Tokens["Colon"],";": Tokens["Semi"],"&": Tokens["And"],"|": Tokens["Or"],}
+  optable = {"(": Tokens["POpen"],")": Tokens["PClose"],"{": Tokens["BOpen"],"}": Tokens["BClose"],"[": Tokens["SOpen"],"]": Tokens["SClose"],"+": Tokens["BinOp"],"-": Tokens["BinOp"],"*": Tokens["BinOp"],"%": Tokens["BinOp"],"<": Tokens["Smaller"],">": Tokens["Bigger"],"in": Tokens["BinOp"],".": Tokens["Dot"],",": Tokens["Comma"],":": Tokens["Colon"],";": Tokens["Semi"],"&": Tokens["And"],"|": Tokens["Or"],}
   keywords = {"import": Tokens["Import"],"fn": Tokens["Fn"],"return": Tokens["Ret"],"if": Tokens["If"],"else": Tokens["Else"],"for": Tokens["For"],"while": Tokens["While"],"class": Tokens["Class"],"async": Tokens["Async"],}
   i = 0
   while (i < len(text)):
     char = text[i]
-    if char in optable:
+    if (char in optable):
       out.append(_tok(char,optable[char]))
     elif (char == "/"):
       if (text[(i + 1)] == "/"):
@@ -98,13 +95,13 @@ def tokenize(text):
         i = (i + 1)
         _ = 0
       tok = Tokens["Word"]
-      if acc in keywords:
+      if (acc in keywords):
         tok = keywords[acc]
 
       out.append(_tok(acc,tok))
       i = (i - 1)
     elif (isnone(char) != True):
-      throw(("lexer:unrecognized: " + char))
+      raise(Exception(("lexer:unrecognized: " + char)))
 
     i = (i + 1)
   out.append(_tok("<EOF>",Tokens["EOF"]))

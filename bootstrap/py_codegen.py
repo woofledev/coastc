@@ -1,5 +1,4 @@
-import json
-import types, lexer
+import json, types
 def __lambda_1(val):
   try:
     f = float(val)
@@ -7,8 +6,6 @@ def __lambda_1(val):
     return f
   except Exception: return val
 
-
-throw = lexer.throw
 eol = "\n"
 try_float = __lambda_1
 def Codegen():
@@ -161,7 +158,7 @@ def Codegen():
         i = (i + 1)
       out = (out + "]")
     else:
-      throw("unimplemented node type: {}".format(node["t"]))
+      raise(Exception("unimplemented node type: {}".format(node["t"])))
 
 
   exports = {"run": run,"setIndent": setIndent,}

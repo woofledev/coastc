@@ -2,7 +2,6 @@ import "defs, lexer"
 import "types"
 Tokens = defs.Tokens
 Nodes = defs.Nodes
-throw = lexer.throw
 
 fn Parser() {
   tokens = []
@@ -14,7 +13,7 @@ fn Parser() {
   fn _expect(tok, err) {
     __inline("nonlocal tokens")
     prev = _pop()
-    if (__inline("not prev") | prev[1] != tok) { throw("parser: {}, got {}".format(err, str(tok[0]) )) }
+    if (not(prev) | prev[1] != tok) { raise( Exception("parser: {}, got {}".format(err, str(tok[0]))) ) }
     return prev
   }
 
@@ -58,7 +57,7 @@ fn Parser() {
 
     args = _args()
     for (i=0; i<len(args); i=i+1) {
-      if (args[i]["t"] != "Word") {throw("parser: expected fn params to be Word")}
+      if (args[i]["t"] != "Word") { raise(Exception("parser: expected fn params to be Word")) }
       params.append(args[i]["val"])
     }
 
@@ -116,7 +115,7 @@ fn Parser() {
   }
   fn _expr_math() {
     left = _expr_call()
-    for (_=0; (["+", "-", "*", "/", "%", "<", ">", "==", "!="]).__contains__(tokens[0][0]); _=0) {
+    while ((["+", "-", "*", "/", "%", "<", ">", "==", "!=", "in"]).__contains__(tokens[0][0])) {
       op = (_pop())[0]
       left = Nodes["BinOp"](left, _expr_call(), op)
     }
@@ -141,7 +140,7 @@ fn Parser() {
       op = _pop()
       if (op[1] == Tokens["Dot"]) {
         computed = False  prop = _expr_final()
-        if (prop["t"] != "Word") { throw("parser: expected dot op to be followed by Word") }
+        if (prop["t"] != "Word") { raise(Exception("parser: expected dot op to be followed by Word")) }
       } else {
         computed = True   prop = _expr()
         _expect(Tokens["SClose"], "expected ]")
@@ -163,7 +162,7 @@ fn Parser() {
       _expect(Tokens["PClose"], "expected )")
       return val
     } else { 
-      throw("parser: unexpected token '{}'".format(tokens[0][0]))
+      raise(Exception("parser: unexpected token '{}'".format(tokens[0][0])))
     }
   }
 
@@ -186,7 +185,7 @@ fn Parser() {
 
     args = _args()
     for (i=0; i<len(args); i=i+1) {
-      if (args[i]["t"] != "Word") { throw("parser: expected fn params to be Word") }
+      if (args[i]["t"] != "Word") { raise(Exception("parser: expected fn params to be Word")) }
       params.append(args[i]["val"])
     }
 
@@ -241,7 +240,7 @@ fn Parser() {
 
     args = _args()
     for (i=0; i<len(args); i=i+1) {
-      if (args[i]["t"] != "Word") {throw("parser: expected class inherits to be Word")}
+      if (args[i]["t"] != "Word") { raise(Exception("parser: expected class inherits to be Word")) }
       inherits.append(args[i]["val"])
     }
 

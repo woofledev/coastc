@@ -4,7 +4,6 @@ import types
 
 Tokens = defs.Tokens
 Nodes = defs.Nodes
-throw = lexer.throw
 def Parser():
   tokens = []
   def _pop():
@@ -14,8 +13,8 @@ def Parser():
   def _expect(tok,err):
     nonlocal tokens
     prev = _pop()
-    if (not prev or (prev[1] != tok)):
-      throw("parser: {}, got {}".format(err,str(tok[0])))
+    if (not(prev) or (prev[1] != tok)):
+      raise(Exception("parser: {}, got {}".format(err,str(tok[0]))))
 
     return prev
 
@@ -69,7 +68,7 @@ def Parser():
     i = 0
     while (i < len(args)):
       if (args[i]["t"] != "Word"):
-        throw("parser: expected fn params to be Word")
+        raise(Exception("parser: expected fn params to be Word"))
 
       params.append(args[i]["val"])
       i = (i + 1)
@@ -130,11 +129,11 @@ def Parser():
 
   def _expr_math():
     left = _expr_call()
-    _ = 0
-    while ["+","-","*","/","%","<",">","==","!=",].__contains__(tokens[0][0]):
+    
+    while ["+","-","*","/","%","<",">","==","!=","in",].__contains__(tokens[0][0]):
       op = _pop()[0]
       left = Nodes["BinOp"](left,_expr_call(),op)
-      _ = 0
+
     return left
 
   def _expr_call():
@@ -161,7 +160,7 @@ def Parser():
         computed = False
         prop = _expr_final()
         if (prop["t"] != "Word"):
-          throw("parser: expected dot op to be followed by Word")
+          raise(Exception("parser: expected dot op to be followed by Word"))
 
       else:
         computed = True
@@ -185,7 +184,7 @@ def Parser():
       _expect(Tokens["PClose"],"expected )")
       return val
     else:
-      throw("parser: unexpected token '{}'".format(tokens[0][0]))
+      raise(Exception("parser: unexpected token '{}'".format(tokens[0][0])))
 
 
   def _stmt_import():
@@ -205,7 +204,7 @@ def Parser():
     i = 0
     while (i < len(args)):
       if (args[i]["t"] != "Word"):
-        throw("parser: expected fn params to be Word")
+        raise(Exception("parser: expected fn params to be Word"))
 
       params.append(args[i]["val"])
       i = (i + 1)
@@ -258,7 +257,7 @@ def Parser():
     i = 0
     while (i < len(args)):
       if (args[i]["t"] != "Word"):
-        throw("parser: expected class inherits to be Word")
+        raise(Exception("parser: expected class inherits to be Word"))
 
       inherits.append(args[i]["val"])
       i = (i + 1)
