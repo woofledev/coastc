@@ -1,4 +1,4 @@
-import json, types
+import json
 def __lambda_1(val):
   try:
     f = float(val)
@@ -10,104 +10,107 @@ def __lambda_1(val):
     return val
 
 
-eol = "\n"
 try_float = __lambda_1
-def Codegen():
+class Codegen():
   lambda_c = 0
   indent_c = 0
   head = ""
   out = ""
-  def setIndent(v):
-    nonlocal indent_c
-    indent_c = v
+  def idt(self):
+    return ("  " * self.indent_c)
 
-  def idt():
-    return ("  " * indent_c)
-
-  def parse_block(body):
+  def parse_block(self,body):
     cg = Codegen()
-    cg.setIndent((indent_c + 1))
+    cg.indent_c = (self.indent_c + 1)
     return cg.run({"t": "Main","body": body,})
 
-  def run(node):
-    nonlocal out, head, indent_c, lambda_c
+  def do_args(self,args):
+    cg = Codegen()
+    i = 0
+    while (i < len(args)):
+      cg.run(args[i])
+      cg.out = (cg.out + ",")
+      i = (i + 1)
+    if ((len(cg.out) > 0) and (cg.out[(0 - 1)] == ",")):
+      cg.out = cg.out[:-1]
+
+    return cg.out
+
+  def run(self,node):
+    run = self.run
+    idt = self.idt
     if (node["t"] == "Main"):
       i = 0
       while (i < len(node["body"])):
-        out = (out + idt())
+        self.out = (self.out + idt())
         run(node["body"][i])
-        out = (out + eol)
+        self.out = (self.out + "\n")
         i = (i + 1)
-      out = (head + out)
-      return out
+      self.out = (self.head + self.out)
+      return self.out
     elif (node["t"] == "Assign"):
       run(node["key"])
-      out = (out + " = ")
+      self.out = (self.out + " = ")
       run(node["val"])
     elif (node["t"] == "ImportStmt"):
-      head = (head + "import {}{}".format(node["mod"],eol))
+      self.head = (self.head + "import {}\n".format(node["mod"]))
     elif (node["t"] == "RetStmt"):
-      out = (out + "return ")
+      self.out = (self.out + "return ")
       run(node["expr"])
     elif (node["t"] == "FnStmt"):
       if node["isAsync"]:
-        out = (out + "async ")
+        self.out = (self.out + "async ")
 
-      out = (out + "def {}({}):{}".format(node["name"],",".join(node["args"]),eol))
-      out = (out + parse_block(node["body"]))
+      self.out = (self.out + "def {}(".format(node["name"]))
+      self.out = (self.out + self.do_args(node["args"]))
+      self.out = (self.out + "):\n")
+      self.out = (self.out + self.parse_block(node["body"]))
     elif (node["t"] == "IfStmt"):
-      out = (out + "if ")
+      self.out = (self.out + "if ")
       run(node["expr"])
-      out = (out + ":{}".format(eol))
-      out = (out + parse_block(node["body"]))
+      self.out = (self.out + ":\n")
+      self.out = (self.out + self.parse_block(node["body"]))
       if ((len(node["alt"]) > 0) and (node["alt"][0]["t"] == "IfStmt")):
-        out = ((out + idt()) + "el")
+        self.out = ((self.out + idt()) + "el")
         run(node["alt"][0])
       elif (len(node["alt"]) > 0):
-        out = ((out + idt()) + "else:{}".format(eol))
-        out = (out + parse_block(node["alt"]))
+        self.out = ((self.out + idt()) + "else:\n")
+        self.out = (self.out + self.parse_block(node["alt"]))
 
     elif (node["t"] == "ForStmt"):
       run(node["init"])
-      out = (out + "{}{}while ".format(eol,idt()))
+      self.out = (self.out + "\n{}while ".format(idt()))
       run(node["expr"])
-      out = (out + ":{}".format(eol))
-      out = (out + parse_block(node["body"]))
-      indent_c = (indent_c + 1)
-      out = (out + idt())
+      self.out = (self.out + ":\n")
+      self.out = (self.out + self.parse_block(node["body"]))
+      self.indent_c = (self.indent_c + 1)
+      self.out = (self.out + idt())
       run(node["after"])
-      indent_c = (indent_c - 1)
+      self.indent_c = (self.indent_c - 1)
     elif (node["t"] == "WhileStmt"):
-      out = (out + "{}{}while ".format(eol,idt()))
+      self.out = (self.out + "\n{}while ".format(idt()))
       run(node["expr"])
-      out = (out + ":{}".format(eol))
-      out = (out + parse_block(node["body"]))
+      self.out = (self.out + ":\n")
+      self.out = (self.out + self.parse_block(node["body"]))
     elif (node["t"] == "ClassStmt"):
-      out = ((out + idt()) + "class ")
-      out = (out + "{}({}):\n".format(node["name"],",".join(node["inherits"])))
-      out = (out + parse_block(node["body"]))
+      self.out = ((self.out + idt()) + "class ")
+      self.out = (self.out + "{}({}):\n".format(node["name"],",".join(node["inherits"])))
+      self.out = (self.out + self.parse_block(node["body"]))
     elif (node["t"] == "TryCatch"):
-      out = (out + "try:\n")
-      out = (out + parse_block(node["body"]))
-      out = ((out + idt()) + "except ")
+      self.out = (self.out + "try:\n")
+      self.out = (self.out + self.parse_block(node["body"]))
+      self.out = ((self.out + idt()) + "except ")
       run(node["asVar"][0])
-      out = (out + " as {}:\n".format(node["asVar"][1]))
-      out = (out + parse_block(node["alt"]))
+      self.out = (self.out + " as {}:\n".format(node["asVar"][1]))
+      self.out = (self.out + self.parse_block(node["alt"]))
     elif (node["t"] == "Fcall"):
       if ((node["caller"]["t"] == "Word") and (node["caller"]["val"] == "__inline")):
-        out = (out + node["args"][0]["val"])
+        self.out = (self.out + node["args"][0]["val"])
       else:
         run(node["caller"])
-        out = (out + "(")
-        i = 0
-        while (i < len(node["args"])):
-          run(node["args"][i])
-          out = (out + ",")
-          i = (i + 1)
-        if (out[(0 - 1)] == ","):
-          out = out[:-1]
-
-        out = (out + ")")
+        self.out = (self.out + "(")
+        self.out = (self.out + self.do_args(node["args"]))
+        self.out = (self.out + ")")
 
     elif (node["t"] == "BinOp"):
       if (node["op"] == "&"):
@@ -115,63 +118,63 @@ def Codegen():
       elif (node["op"] == "|"):
         node["op"] = "or"
 
-      out = (out + "(")
+      self.out = (self.out + "(")
       run(node["l"])
-      out = (out + " {} ".format(node["op"]))
+      self.out = (self.out + " {} ".format(node["op"]))
       run(node["r"])
-      out = (out + ")")
+      self.out = (self.out + ")")
     elif (node["t"] == "Member"):
       if (node["computed"] == True):
         run(node["obj"])
-        out = (out + "[")
+        self.out = (self.out + "[")
         run(node["prop"])
-        out = (out + "]")
+        self.out = (self.out + "]")
       else:
         run(node["obj"])
-        out = (out + ".")
+        self.out = (self.out + ".")
         run(node["prop"])
 
     elif ((node["t"] == "Word") or (node["t"] == "Int")):
-      out = (out + str(try_float(node["val"])))
+      self.out = (self.out + str(try_float(node["val"])))
     elif (node["t"] == "Str"):
-      out = (out + json.dumps(node["val"]))
+      self.out = (self.out + json.dumps(node["val"]))
     elif (node["t"] == "Lambda"):
-      lambda_c = (lambda_c + 1)
-      head = ((head + idt()) + "def __lambda_{}({}):{}".format(lambda_c,",".join(node["args"]),eol))
-      head = (head + parse_block(node["body"]))
-      out = (out + "__lambda_{}".format(lambda_c))
+      self.lambda_c = (self.lambda_c + 1)
+      self.head = ((self.head + idt()) + "def __lambda_{}(".format(self.lambda_c))
+      self.head = (self.head + self.do_args(node["args"]))
+      self.head = (self.head + "):\n")
+      self.head = (self.head + self.parse_block(node["body"]))
+      self.out = (self.out + "__lambda_{}".format(self.lambda_c))
     elif (node["t"] == "Object"):
-      out = (out + "{")
+      self.out = (self.out + "{")
       i = 0
       while (i < len(node["props"])):
         prop = node["props"][i]
         k = try_float(prop["k"])
         if (type(k) == float):
-          out = (out + k)
+          self.out = (self.out + k)
         else:
-          out = (((out + "\"") + k) + "\"")
+          self.out = (((self.out + "\"") + k) + "\"")
 
         if (prop["v"] == None):
-          out = ((out + ": ") + k)
+          self.out = ((self.out + ": ") + k)
         else:
-          out = (out + ": ")
+          self.out = (self.out + ": ")
           run(prop["v"])
 
-        out = (out + ",")
+        self.out = (self.out + ",")
         i = (i + 1)
-      out = (out + "}")
+      self.out = (self.out + "}")
     elif (node["t"] == "Array"):
-      out = (out + "[")
+      self.out = (self.out + "[")
       i = 0
       while (i < len(node["props"])):
         run(node["props"][i])
-        out = (out + ",")
+        self.out = (self.out + ",")
         i = (i + 1)
-      out = (out + "]")
+      self.out = (self.out + "]")
     else:
       raise(Exception("unimplemented node type: {}".format(node["t"])))
 
 
-  exports = {"run": run,"setIndent": setIndent,}
-  return types.SimpleNamespace(**exports)
 

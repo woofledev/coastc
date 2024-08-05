@@ -69,10 +69,11 @@ def Parser():
     args = _args()
     i = 0
     while (i < len(args)):
-      if (args[i]["t"] != "Word"):
-        raise(Exception("parser: expected fn params to be Word"))
+      if ((args[i]["t"] == "Word") or (args[i]["t"] == "Assign")):
+        params.append(args[i])
+      else:
+        raise(Exception("parser: expected fn params to be Word/Assign"))
 
-      params.append(args[i]["val"])
       i = (i + 1)
     return Nodes["Lambda"](params,_block())
 
@@ -205,10 +206,11 @@ def Parser():
     args = _args()
     i = 0
     while (i < len(args)):
-      if (args[i]["t"] != "Word"):
-        raise(Exception("parser: expected fn params to be Word"))
+      if ((args[i]["t"] == "Word") or (args[i]["t"] == "Assign")):
+        params.append(args[i])
+      else:
+        raise(Exception("parser: expected fn params to be Word/Assign"))
 
-      params.append(args[i]["val"])
       i = (i + 1)
     return Nodes["FnStmt"](name,params,_block(),isAsync)
 

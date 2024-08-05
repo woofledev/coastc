@@ -58,8 +58,8 @@ fn Parser() {
 
     args = _args()
     for (i=0; i<len(args); i=i+1) {
-      if (args[i]["t"] != "Word") { raise(Exception("parser: expected fn params to be Word")) }
-      params.append(args[i]["val"])
+      if (args[i]["t"] == "Word" | args[i]["t"] == "Assign") { params.append(args[i]) }
+      else { raise(Exception("parser: expected fn params to be Word/Assign")) }
     }
 
     return Nodes["Lambda"](params, _block())
@@ -186,8 +186,8 @@ fn Parser() {
 
     args = _args()
     for (i=0; i<len(args); i=i+1) {
-      if (args[i]["t"] != "Word") { raise(Exception("parser: expected fn params to be Word")) }
-      params.append(args[i]["val"])
+      if (args[i]["t"] == "Word" | args[i]["t"] == "Assign") { params.append(args[i]) }
+      else { raise(Exception("parser: expected fn params to be Word/Assign")) }
     }
 
     return Nodes["FnStmt"](name, params, _block(), isAsync)
