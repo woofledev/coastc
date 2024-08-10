@@ -32,7 +32,7 @@ class Codegen() {
     if (len(cg.out) > 0 & cg.out[0-1] == ",") {  // slice last comma if its there
       cg.out = __inline("cg.out[:-1]")
     }
-    return cg.out
+    return [cg.head, cg.out]
   }
 
 
@@ -58,7 +58,7 @@ class Codegen() {
     } else if (node["t"] == "FnStmt") {
       if (node["isAsync"]) { self.out = self.out + "async " }
       self.out = self.out + "def {}(".format(node["name"])
-      self.out = self.out + self.do_args(node["args"])
+      self.out = self.out + (self.do_args(node["args"]))[1]  // we only care about the body since we dont expect imports, lambdas..
       self.out = self.out + "):\n"
       self.out = self.out + self.parse_block(node["body"])
     
@@ -112,7 +112,9 @@ class Codegen() {
       } else {
         run(node["caller"])
         self.out = self.out + "("
-        self.out = self.out + self.do_args(node["args"])
+        args = self.do_args(node["args"])
+        self.head = self.head + args[0]  // head
+        self.out = self.out + args[1]    // body
         self.out = self.out + ")"
       }
     } else if (node["t"] == "BinOp") {
@@ -143,7 +145,7 @@ class Codegen() {
     } else if (node["t"] == "Lambda") {
       self.lambda_c = self.lambda_c + 1
       self.head = self.head + idt() + "def __lambda_{}(".format(self.lambda_c)
-      self.head = self.head + self.do_args(node["args"])
+      self.head = self.head + (self.do_args(node["args"]))[1] // we only care about the body since we dont expect imports, lambdas..
       self.head = self.head + "):\n"
       self.head = self.head + self.parse_block(node["body"])
       

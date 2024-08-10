@@ -34,7 +34,7 @@ class Codegen():
     if ((len(cg.out) > 0) and (cg.out[(0 - 1)] == ",")):
       cg.out = cg.out[:-1]
 
-    return cg.out
+    return [cg.head,cg.out,]
 
   def run(self,node):
     run = self.run
@@ -62,7 +62,7 @@ class Codegen():
         self.out = (self.out + "async ")
 
       self.out = (self.out + "def {}(".format(node["name"]))
-      self.out = (self.out + self.do_args(node["args"]))
+      self.out = (self.out + self.do_args(node["args"])[1])
       self.out = (self.out + "):\n")
       self.out = (self.out + self.parse_block(node["body"]))
     elif (node["t"] == "IfStmt"):
@@ -109,7 +109,9 @@ class Codegen():
       else:
         run(node["caller"])
         self.out = (self.out + "(")
-        self.out = (self.out + self.do_args(node["args"]))
+        args = self.do_args(node["args"])
+        self.head = (self.head + args[0])
+        self.out = (self.out + args[1])
         self.out = (self.out + ")")
 
     elif (node["t"] == "BinOp"):
@@ -141,7 +143,7 @@ class Codegen():
     elif (node["t"] == "Lambda"):
       self.lambda_c = (self.lambda_c + 1)
       self.head = ((self.head + idt()) + "def __lambda_{}(".format(self.lambda_c))
-      self.head = (self.head + self.do_args(node["args"]))
+      self.head = (self.head + self.do_args(node["args"])[1])
       self.head = (self.head + "):\n")
       self.head = (self.head + self.parse_block(node["body"]))
       self.out = (self.out + "__lambda_{}".format(self.lambda_c))
