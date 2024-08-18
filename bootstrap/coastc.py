@@ -2,7 +2,7 @@ import lparse, py_codegen, sys
 
 parser = lparse.Parser()
 cg = py_codegen.Codegen()
-if (__name__ == "__main__"):
+def main():
   if (len(sys.argv) < 3):
     print("usage: {} <input.co> <output.py>".format(sys.argv[0]))
     sys.exit(0)
@@ -17,4 +17,7 @@ if (__name__ == "__main__"):
   out_f = open(out_file,"w")
   out_f.write(generated)
   out_f.close()
+
+if (__name__ == "__main__"):
+  main()
 

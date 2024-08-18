@@ -1,7 +1,0 @@
-{
-  "name": "coastc",
-  "description": "a little language that compiles into python",
-  "version": "0.0.4",
-  "license": "MIT",
-  "scripts": { "build": "./build.sh" }
-}
