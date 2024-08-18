@@ -294,6 +294,5 @@ fn Parser() {
     return body
   }
 
-  exports = {parse}
-  return types.SimpleNamespace(__inline("**exports"))
+  return types.SimpleNamespace(parse=parse)
 }

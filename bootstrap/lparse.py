@@ -310,6 +310,5 @@ def Parser():
     _expect(Tokens["BClose"],"expected } in block")
     return body
 
-  exports = {"parse": parse,}
-  return types.SimpleNamespace(**exports)
+  return types.SimpleNamespace(parse = parse)
 

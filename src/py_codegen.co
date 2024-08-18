@@ -22,8 +22,9 @@ class Codegen() {
     return cg.run({t: "Main", body})
   }
 
-  fn do_args(self, args) {
+  fn do_args(self, args, idc=0) {
     cg = Codegen()
+    cg.indent_c = idc
     for (i=0; i<len(args); i=i+1) {
       cg.run(args[i])
       cg.out = cg.out + ","
@@ -112,7 +113,7 @@ class Codegen() {
       } else {
         run(node["caller"])
         self.out = self.out + "("
-        args = self.do_args(node["args"])
+        args = self.do_args(node["args"], self.indent_c)
         self.head = self.head + args[0]  // head
         self.out = self.out + args[1]    // body
         self.out = self.out + ")"
@@ -156,7 +157,8 @@ class Codegen() {
       for (i=0; i<len(node["props"]); i=i+1) {
         prop = node["props"][i]
         k = try_float(prop["k"])
-        if (type(k) == float) { self.out = self.out + k } else { self.out = self.out + "\""+k+"\"" }  // add "" if not number
+        if (type(k) == float | type(k) == int) { self.out = self.out + str(k) } 
+        else { self.out = self.out + "\""+k+"\"" }  // add "" if not number
 
         if (prop["v"] == None) {
           self.out = self.out + ": " + k
