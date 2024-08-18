@@ -22,9 +22,10 @@ class Codegen() {
     return cg.run({t: "Main", body})
   }
 
-  fn do_args(self, args, idc=0) {
+  fn do_args(self, args) {
     cg = Codegen()
-    cg.indent_c = idc
+    cg.indent_c = self.indent_c
+    cg.lambda_c = self.lambda_c
     for (i=0; i<len(args); i=i+1) {
       cg.run(args[i])
       cg.out = cg.out + ","
@@ -113,7 +114,7 @@ class Codegen() {
       } else {
         run(node["caller"])
         self.out = self.out + "("
-        args = self.do_args(node["args"], self.indent_c)
+        args = self.do_args(node["args"])
         self.head = self.head + args[0]  // head
         self.out = self.out + args[1]    // body
         self.out = self.out + ")"

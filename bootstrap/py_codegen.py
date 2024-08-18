@@ -24,9 +24,10 @@ class Codegen():
     cg.indent_c = (self.indent_c + 1)
     return cg.run({"t": "Main","body": body,})
 
-  def do_args(self,args,idc = 0):
+  def do_args(self,args):
     cg = Codegen()
-    cg.indent_c = idc
+    cg.indent_c = self.indent_c
+    cg.lambda_c = self.lambda_c
     i = 0
     while (i < len(args)):
       cg.run(args[i])
@@ -110,7 +111,7 @@ class Codegen():
       else:
         run(node["caller"])
         self.out = (self.out + "(")
-        args = self.do_args(node["args"],self.indent_c)
+        args = self.do_args(node["args"])
         self.head = (self.head + args[0])
         self.out = (self.out + args[1])
         self.out = (self.out + ")")
