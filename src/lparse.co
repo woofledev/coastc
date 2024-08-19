@@ -13,7 +13,7 @@ fn Parser() {
   fn _expect(tok, err) {
     __inline("nonlocal tokens")
     prev = _pop()
-    if (not(prev) | prev[1] != tok) { raise( Exception("parser: {}, got {}".format(err, str(tok[0]))) ) }
+    if not(prev) | prev[1] != tok { raise( Exception("parser: {}, got {}".format(err, prev[0])) ) }
     return prev
   }
 
@@ -21,7 +21,7 @@ fn Parser() {
     __inline("nonlocal tokens")
     tokens = lexer.tokenize(text)
     prog = Nodes["Main"]([])
-    for (_=0; tokens[0][1] != Tokens["EOF"]; _=0) { prog["body"].append(_stmt()) }
+    while tokens[0][1] != Tokens["EOF"] { prog["body"].append(_stmt()) }
     return prog
   }
 
@@ -199,9 +199,7 @@ fn Parser() {
 
   fn _stmt_if() { 
     _pop() 
-    _expect(Tokens["POpen"], "expected ( after if")
     cond = _expr()
-    _expect(Tokens["PClose"], "expected ) after if")
     body = _block()
 
     alt = []
@@ -227,11 +225,7 @@ fn Parser() {
   }
   fn _stmt_while() {
     _pop()
-    _expect(Tokens["POpen"], "expected ( after while")
-    cond = _expr()
-    _expect(Tokens["PClose"], "expected ) after while")
-
-    return Nodes["WhileStmt"](cond, _block())
+    return Nodes["WhileStmt"](_expr(), _block())
   }
 
   fn _stmt_class() {

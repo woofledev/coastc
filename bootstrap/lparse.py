@@ -14,7 +14,7 @@ def Parser():
     nonlocal tokens
     prev = _pop()
     if (not(prev) or (prev[1] != tok)):
-      raise(Exception("parser: {}, got {}".format(err,str(tok[0]))))
+      raise(Exception("parser: {}, got {}".format(err,prev[0])))
 
     return prev
 
@@ -22,10 +22,10 @@ def Parser():
     nonlocal tokens
     tokens = lexer.tokenize(text)
     prog = Nodes["Main"]([])
-    _ = 0
+    
     while (tokens[0][1] != Tokens["EOF"]):
       prog["body"].append(_stmt())
-      _ = 0
+
     return prog
 
   def _stmt():
@@ -220,9 +220,7 @@ def Parser():
 
   def _stmt_if():
     _pop()
-    _expect(Tokens["POpen"],"expected ( after if")
     cond = _expr()
-    _expect(Tokens["PClose"],"expected ) after if")
     body = _block()
     alt = []
     if (tokens[0][1] == Tokens["Else"]):
@@ -248,10 +246,7 @@ def Parser():
 
   def _stmt_while():
     _pop()
-    _expect(Tokens["POpen"],"expected ( after while")
-    cond = _expr()
-    _expect(Tokens["PClose"],"expected ) after while")
-    return Nodes["WhileStmt"](cond,_block())
+    return Nodes["WhileStmt"](_expr(),_block())
 
   def _stmt_class():
     _pop()
