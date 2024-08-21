@@ -3,7 +3,7 @@ parser = lparse.Parser()
 cg = py_codegen.Codegen()
 
 fn main() {
-  if (len(sys.argv) < 3) {
+  if len(sys.argv) < 3 {
     print("usage: {} <input.co> <output.py>".format(sys.argv[0]))
     sys.exit(0)
   }
@@ -24,4 +24,4 @@ fn main() {
   out_f.close()
 }
 
-if (__name__ == "__main__") { main() }
+if __name__ == "__main__" { main() }

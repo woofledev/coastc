@@ -1,72 +1,69 @@
 import defs, lexer
-import types
-
 
 Tokens = defs.Tokens
 Nodes = defs.Nodes
-def Parser():
-  tokens = []
-  def _pop():
-    nonlocal tokens
-    return tokens.pop(0)
+class Parser():
+  def __init__(self):
+    self.tokens = []
 
-  def _expect(tok,err):
-    nonlocal tokens
-    prev = _pop()
+  def _pop(self):
+    return self.tokens.pop(0)
+
+  def _expect(self,tok,err):
+    prev = self._pop()
     if (not(prev) or (prev[1] != tok)):
       raise(Exception("parser: {}, got {}".format(err,prev[0])))
 
     return prev
 
-  def parse(text):
-    nonlocal tokens
-    tokens = lexer.tokenize(text)
+  def parse(self,text):
+    self.tokens = lexer.tokenize(text)
     prog = Nodes["Main"]([])
     
-    while (tokens[0][1] != Tokens["EOF"]):
-      prog["body"].append(_stmt())
+    while (self.tokens[0][1] != Tokens["EOF"]):
+      prog["body"].append(self._stmt())
 
     return prog
 
-  def _stmt():
-    if (tokens[0][1] == Tokens["Import"]):
-      return _stmt_import()
-    elif ((tokens[0][1] == Tokens["Fn"]) or (tokens[0][1] == Tokens["Async"])):
-      return _stmt_fn()
-    elif (tokens[0][1] == Tokens["Ret"]):
-      return _stmt_ret()
-    elif (tokens[0][1] == Tokens["If"]):
-      return _stmt_if()
-    elif (tokens[0][1] == Tokens["For"]):
-      return _stmt_for()
-    elif (tokens[0][1] == Tokens["While"]):
-      return _stmt_while()
-    elif (tokens[0][1] == Tokens["Class"]):
-      return _stmt_class()
-    elif (tokens[0][1] == Tokens["Try"]):
-      return _stmt_trycatch()
+  def _stmt(self):
+    if (self.tokens[0][1] == Tokens["Import"]):
+      return self._stmt_import()
+    elif ((self.tokens[0][1] == Tokens["Fn"]) or (self.tokens[0][1] == Tokens["Async"])):
+      return self._stmt_fn()
+    elif (self.tokens[0][1] == Tokens["Ret"]):
+      return self._stmt_ret()
+    elif (self.tokens[0][1] == Tokens["If"]):
+      return self._stmt_if()
+    elif (self.tokens[0][1] == Tokens["For"]):
+      return self._stmt_for()
+    elif (self.tokens[0][1] == Tokens["While"]):
+      return self._stmt_while()
+    elif (self.tokens[0][1] == Tokens["Class"]):
+      return self._stmt_class()
+    elif (self.tokens[0][1] == Tokens["Try"]):
+      return self._stmt_trycatch()
     else:
-      return _expr()
+      return self._expr()
 
 
-  def _expr():
-    return _expr_set()
+  def _expr(self):
+    return self._expr_set()
 
-  def _expr_set():
-    if ((tokens[0][1] == Tokens["Bigger"]) and (tokens[1][1] == Tokens["POpen"])):
-      return _expr_lambda()
+  def _expr_set(self):
+    if ((self.tokens[0][1] == Tokens["Bigger"]) and (self.tokens[1][1] == Tokens["POpen"])):
+      return self._expr_lambda()
 
-    left = _expr_obj()
-    if (tokens[0][1] == Tokens["Equals"]):
-      _pop()
-      return Nodes["Assign"](left,_expr_set())
+    left = self._expr_obj()
+    if (self.tokens[0][1] == Tokens["Equals"]):
+      self._pop()
+      return Nodes["Assign"](left,self._expr_set())
 
     return left
 
-  def _expr_lambda():
-    _pop()
+  def _expr_lambda(self):
+    self._pop()
     params = []
-    args = _args()
+    args = self._args()
     i = 0
     while (i < len(args)):
       if ((args[i]["t"] == "Word") or (args[i]["t"] == "Assign")):
@@ -75,135 +72,135 @@ def Parser():
         raise(Exception("parser: expected fn params to be Word/Assign"))
 
       i = (i + 1)
-    return Nodes["Lambda"](params,_block())
+    return Nodes["Lambda"](params,self._block())
 
-  def _expr_obj():
-    if (tokens[0][1] != Tokens["BOpen"]):
-      return _expr_arr()
+  def _expr_obj(self):
+    if (self.tokens[0][1] != Tokens["BOpen"]):
+      return self._expr_arr()
 
     props = []
-    _pop()
-    _ = 0
-    while ((tokens[0][1] != Tokens["EOF"]) and (tokens[0][1] != Tokens["BClose"])):
-      if ((tokens[0][1] == Tokens["Str"]) or (tokens[0][1] == Tokens["Int"])):
-        key = _pop()[0]
+    self._pop()
+    
+    while ((self.tokens[0][1] != Tokens["EOF"]) and (self.tokens[0][1] != Tokens["BClose"])):
+      if ((self.tokens[0][1] == Tokens["Str"]) or (self.tokens[0][1] == Tokens["Int"])):
+        key = self._pop()[0]
       else:
-        key = _expect(Tokens["Word"],"expected Word")[0]
+        key = self._expect(Tokens["Word"],"expected Word")[0]
 
-      if (tokens[0][1] == Tokens["Comma"]):
-        _pop()
+      if (self.tokens[0][1] == Tokens["Comma"]):
+        self._pop()
         props.append(Nodes["Prop"](key,None))
-      elif (tokens[0][1] == Tokens["BClose"]):
+      elif (self.tokens[0][1] == Tokens["BClose"]):
         props.append(Nodes["Prop"](key,None))
       else:
-        _expect(Tokens["Colon"],"expected : following key")
-        props.append(Nodes["Prop"](key,_expr()))
-        if (tokens[0][1] != Tokens["BClose"]):
-          _expect(Tokens["Comma"],"expected , or } following prop")
+        self._expect(Tokens["Colon"],"expected : following key")
+        props.append(Nodes["Prop"](key,self._expr()))
+        if (self.tokens[0][1] != Tokens["BClose"]):
+          self._expect(Tokens["Comma"],"expected , or } following prop")
 
 
-      _ = 0
-    _expect(Tokens["BClose"],"expected } after object")
+
+    self._expect(Tokens["BClose"],"expected } after object")
     return Nodes["Object"](props)
 
-  def _expr_arr():
-    if (tokens[0][1] != Tokens["SOpen"]):
-      return _expr_logic()
+  def _expr_arr(self):
+    if (self.tokens[0][1] != Tokens["SOpen"]):
+      return self._expr_logic()
 
     props = []
-    _pop()
-    _ = 0
-    while ((tokens[0][1] != Tokens["EOF"]) and (tokens[0][1] != Tokens["SClose"])):
-      props.append(_expr())
-      if (tokens[0][1] == Tokens["Comma"]):
-        _pop()
+    self._pop()
+    
+    while ((self.tokens[0][1] != Tokens["EOF"]) and (self.tokens[0][1] != Tokens["SClose"])):
+      props.append(self._expr())
+      if (self.tokens[0][1] == Tokens["Comma"]):
+        self._pop()
 
-      _ = 0
-    _expect(Tokens["SClose"],"expected ] after array")
+
+    self._expect(Tokens["SClose"],"expected ] after array")
     return Nodes["Array"](props)
 
-  def _expr_logic():
-    left = _expr_math()
-    if ["&","|",].__contains__(tokens[0][0]):
-      op = _pop()[0]
-      left = Nodes["BinOp"](left,_expr_math(),op)
+  def _expr_logic(self):
+    left = self._expr_math()
+    if (self.tokens[0][0] in ["&","|",]):
+      op = self._pop()[0]
+      left = Nodes["BinOp"](left,self._expr_math(),op)
 
     return left
 
-  def _expr_math():
-    left = _expr_call()
+  def _expr_math(self):
+    left = self._expr_call()
     
-    while ["+","-","*","/","%","<",">","==","!=","in",].__contains__(tokens[0][0]):
-      op = _pop()[0]
-      left = Nodes["BinOp"](left,_expr_call(),op)
+    while (self.tokens[0][0] in ["+","-","*","/","%","<",">","==","!=","in",]):
+      op = self._pop()[0]
+      left = Nodes["BinOp"](left,self._expr_call(),op)
 
     return left
 
-  def _expr_call():
+  def _expr_call(self):
     def _call(caller):
-      e = Nodes["Fcall"](caller,_args())
+      e = Nodes["Fcall"](caller,self._args())
       
-      while (tokens[0][1] == Tokens["POpen"]):
+      while (self.tokens[0][1] == Tokens["POpen"]):
         e = _call(e)
 
       return e
 
-    left = _expr_member()
-    if (tokens[0][1] == Tokens["POpen"]):
+    left = self._expr_member()
+    if (self.tokens[0][1] == Tokens["POpen"]):
       return _call(left)
 
     return left
 
-  def _expr_member():
-    left = _expr_final()
-    _ = 0
-    while ((tokens[0][1] == Tokens["Dot"]) or (tokens[0][1] == Tokens["SOpen"])):
-      op = _pop()
+  def _expr_member(self):
+    left = self._expr_final()
+    
+    while ((self.tokens[0][1] == Tokens["Dot"]) or (self.tokens[0][1] == Tokens["SOpen"])):
+      op = self._pop()
       if (op[1] == Tokens["Dot"]):
         computed = False
-        prop = _expr_final()
+        prop = self._expr_final()
         if (prop["t"] != "Word"):
           raise(Exception("parser: expected dot op to be followed by Word"))
 
       else:
         computed = True
-        prop = _expr()
-        _expect(Tokens["SClose"],"expected ]")
+        prop = self._expr()
+        self._expect(Tokens["SClose"],"expected ]")
 
       left = Nodes["Member"](left,prop,computed)
-      _ = 0
+
     return left
 
-  def _expr_final():
-    if (tokens[0][1] == Tokens["Word"]):
-      return Nodes["Word"](_pop()[0])
-    elif (tokens[0][1] == Tokens["Int"]):
-      return Nodes["Int"](float(_pop()[0]))
-    elif (tokens[0][1] == Tokens["Str"]):
-      return Nodes["Str"](_pop()[0])
-    elif (tokens[0][1] == Tokens["POpen"]):
-      _pop()
-      val = _expr()
-      _expect(Tokens["PClose"],"expected )")
+  def _expr_final(self):
+    if (self.tokens[0][1] == Tokens["Word"]):
+      return Nodes["Word"](self._pop()[0])
+    elif (self.tokens[0][1] == Tokens["Int"]):
+      return Nodes["Int"](float(self._pop()[0]))
+    elif (self.tokens[0][1] == Tokens["Str"]):
+      return Nodes["Str"](self._pop()[0])
+    elif (self.tokens[0][1] == Tokens["POpen"]):
+      self._pop()
+      val = self._expr()
+      self._expect(Tokens["PClose"],"expected )")
       return val
     else:
-      raise(Exception("parser: unexpected token '{}'".format(tokens[0][0])))
+      raise(Exception("parser: unexpected token '{}'".format(self.tokens[0][0])))
 
 
-  def _stmt_import():
-    _pop()
-    val = _expect(Tokens["Str"],"expected str after import")[0]
+  def _stmt_import(self):
+    self._pop()
+    val = self._expect(Tokens["Str"],"expected str after import")[0]
     return Nodes["ImportStmt"](val)
 
-  def _stmt_fn():
+  def _stmt_fn(self):
     isAsync = False
-    if (_pop()[1] == Tokens["Async"]):
+    if (self._pop()[1] == Tokens["Async"]):
       isAsync = True
-      _pop()
+      self._pop()
 
-    name = _expect(Tokens["Word"],"expected name after fn")[0]
+    name = self._expect(Tokens["Word"],"expected name after fn")[0]
     params = []
-    args = _args()
+    args = self._args()
     i = 0
     while (i < len(args)):
       if ((args[i]["t"] == "Word") or (args[i]["t"] == "Assign")):
@@ -212,47 +209,47 @@ def Parser():
         raise(Exception("parser: expected fn params to be Word/Assign"))
 
       i = (i + 1)
-    return Nodes["FnStmt"](name,params,_block(),isAsync)
+    return Nodes["FnStmt"](name,params,self._block(),isAsync)
 
-  def _stmt_ret():
-    _pop()
-    return Nodes["RetStmt"](_expr())
+  def _stmt_ret(self):
+    self._pop()
+    return Nodes["RetStmt"](self._expr())
 
-  def _stmt_if():
-    _pop()
-    cond = _expr()
-    body = _block()
+  def _stmt_if(self):
+    self._pop()
+    cond = self._expr()
+    body = self._block()
     alt = []
-    if (tokens[0][1] == Tokens["Else"]):
-      _pop()
-      if (tokens[0][1] == Tokens["If"]):
-        alt = [_stmt_if(),]
+    if (self.tokens[0][1] == Tokens["Else"]):
+      self._pop()
+      if (self.tokens[0][1] == Tokens["If"]):
+        alt = [self._stmt_if(),]
       else:
-        alt = _block()
+        alt = self._block()
 
 
     return Nodes["IfStmt"](cond,body,alt)
 
-  def _stmt_for():
-    _pop()
-    _expect(Tokens["POpen"],"expected ( after for")
-    init = _expr()
-    _expect(Tokens["Semi"],"expected ; following init")
-    cond = _expr()
-    _expect(Tokens["Semi"],"expected ; following condition")
-    after = _expr()
-    _expect(Tokens["PClose"],"expected ) after for")
-    return Nodes["ForStmt"](init,cond,after,_block())
+  def _stmt_for(self):
+    self._pop()
+    self._expect(Tokens["POpen"],"expected ( after for")
+    init = self._expr()
+    self._expect(Tokens["Semi"],"expected ; following init")
+    cond = self._expr()
+    self._expect(Tokens["Semi"],"expected ; following condition")
+    after = self._expr()
+    self._expect(Tokens["PClose"],"expected ) after for")
+    return Nodes["ForStmt"](init,cond,after,self._block())
 
-  def _stmt_while():
-    _pop()
-    return Nodes["WhileStmt"](_expr(),_block())
+  def _stmt_while(self):
+    self._pop()
+    return Nodes["WhileStmt"](self._expr(),self._block())
 
-  def _stmt_class():
-    _pop()
-    name = _expect(Tokens["Word"],"expected Word after class")[0]
+  def _stmt_class(self):
+    self._pop()
+    name = self._expect(Tokens["Word"],"expected Word after class")[0]
     inherits = []
-    args = _args()
+    args = self._args()
     i = 0
     while (i < len(args)):
       if (args[i]["t"] != "Word"):
@@ -260,50 +257,49 @@ def Parser():
 
       inherits.append(args[i]["val"])
       i = (i + 1)
-    return Nodes["ClassStmt"](name,inherits,_block())
+    return Nodes["ClassStmt"](name,inherits,self._block())
 
-  def _stmt_trycatch():
-    _pop()
-    body = _block()
-    _expect(Tokens["Catch"],"expected catch after try")
-    asVar = [_expr_member(),_expect(Tokens["Word"],"expected var name after catch")[0],]
-    alt = _block()
+  def _stmt_trycatch(self):
+    self._pop()
+    body = self._block()
+    self._expect(Tokens["Catch"],"expected catch after try")
+    asVar = [self._expr_member(),self._expect(Tokens["Word"],"expected var name after catch")[0],]
+    alt = self._block()
     return Nodes["TryCatch"](body,alt,asVar)
 
-  def __arglist():
+  def __arglist(self):
     def parse():
-      left = _expr()
-      if (tokens[0][1] == Tokens["Equals"]):
-        _pop()
+      left = self._expr()
+      if (self.tokens[0][1] == Tokens["Equals"]):
+        self._pop()
         return Nodes["Assign"](left,parse())
 
       return left
 
     args = [parse(),]
-    _ = 0
-    while ((tokens[0][1] == Tokens["Comma"]) and _pop()):
+    
+    while ((self.tokens[0][1] == Tokens["Comma"]) and self._pop()):
       args.append(parse())
-      _ = 0
+
     return args
 
-  def _args():
-    _expect(Tokens["POpen"],"expected ( in args")
+  def _args(self):
+    self._expect(Tokens["POpen"],"expected ( in args")
     args = []
-    if (tokens[0][1] != Tokens["PClose"]):
-      args = __arglist()
+    if (self.tokens[0][1] != Tokens["PClose"]):
+      args = self.__arglist()
 
-    _expect(Tokens["PClose"],"expected ) in args")
+    self._expect(Tokens["PClose"],"expected ) in args")
     return args
 
-  def _block():
-    _expect(Tokens["BOpen"],"expected { in block")
+  def _block(self):
+    self._expect(Tokens["BOpen"],"expected { in block")
     body = []
-    _ = 0
-    while ((tokens[0][1] != Tokens["EOF"]) and (tokens[0][1] != Tokens["BClose"])):
-      body.append(_stmt())
-      _ = 0
-    _expect(Tokens["BClose"],"expected } in block")
+    
+    while ((self.tokens[0][1] != Tokens["EOF"]) and (self.tokens[0][1] != Tokens["BClose"])):
+      body.append(self._stmt())
+
+    self._expect(Tokens["BClose"],"expected } in block")
     return body
 
-  return types.SimpleNamespace(parse = parse)
 

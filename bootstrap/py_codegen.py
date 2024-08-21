@@ -12,10 +12,12 @@ def __lambda_1(val):
 
 try_float = __lambda_1
 class Codegen():
-  lambda_c = 0
-  indent_c = 0
-  head = ""
-  out = ""
+  def __init__(self):
+    self.lambda_c = 0
+    self.indent_c = 0
+    self.head = ""
+    self.out = ""
+
   def idt(self):
     return ("  " * self.indent_c)
 

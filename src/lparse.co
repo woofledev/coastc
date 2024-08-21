@@ -1,150 +1,146 @@
 import "defs, lexer"
-import "types"
 Tokens = defs.Tokens
 Nodes = defs.Nodes
 
-fn Parser() {
-  tokens = []
-
-  fn _pop() {
-    __inline("nonlocal tokens")
-    return tokens.pop(0)
+class Parser() {
+  fn __init__(self) {
+    self.tokens = []
   }
-  fn _expect(tok, err) {
-    __inline("nonlocal tokens")
-    prev = _pop()
+
+  fn _pop(self) { return self.tokens.pop(0) }
+  fn _expect(self, tok, err) {
+    prev = self._pop()
     if not(prev) | prev[1] != tok { raise( Exception("parser: {}, got {}".format(err, prev[0])) ) }
     return prev
   }
 
-  fn parse(text) {
-    __inline("nonlocal tokens")
-    tokens = lexer.tokenize(text)
+  fn parse(self, text) {
+    self.tokens = lexer.tokenize(text)
     prog = Nodes["Main"]([])
-    while tokens[0][1] != Tokens["EOF"] { prog["body"].append(_stmt()) }
+    while self.tokens[0][1] != Tokens["EOF"] { prog["body"].append(self._stmt()) }
     return prog
   }
 
-  fn _stmt() {
-    if (tokens[0][1] == Tokens["Import"]) { return _stmt_import() }
-    else if (tokens[0][1] == Tokens["Fn"] | tokens[0][1] == Tokens["Async"]) { return _stmt_fn() }
-    else if (tokens[0][1] == Tokens["Ret"]) { return _stmt_ret() }
-    else if (tokens[0][1] == Tokens["If"]) { return _stmt_if() }
-    else if (tokens[0][1] == Tokens["For"]) { return _stmt_for() }
-    else if (tokens[0][1] == Tokens["While"]) { return _stmt_while() }
-    else if (tokens[0][1] == Tokens["Class"]) { return _stmt_class() }
-    else if (tokens[0][1] == Tokens["Try"])   { return _stmt_trycatch() }
-    else { return _expr() }
+  fn _stmt(self) {
+    if self.tokens[0][1] == Tokens["Import"]  { return self._stmt_import() }
+    else if self.tokens[0][1] == Tokens["Fn"] | self.tokens[0][1] == Tokens["Async"] { return self._stmt_fn() }
+    else if self.tokens[0][1] == Tokens["Ret"] { return self._stmt_ret() }
+    else if self.tokens[0][1] == Tokens["If"]  { return self._stmt_if() }
+    else if self.tokens[0][1] == Tokens["For"] { return self._stmt_for() }
+    else if self.tokens[0][1] == Tokens["While"] { return self._stmt_while() }
+    else if self.tokens[0][1] == Tokens["Class"] { return self._stmt_class() }
+    else if self.tokens[0][1] == Tokens["Try"]   { return self._stmt_trycatch() }
+    else { return self._expr() }
   }
 
 
   // expressions
-  fn _expr() { return _expr_set() }
-  fn _expr_set() {
-    if (tokens[0][1] == Tokens["Bigger"]  // >
-      & tokens[1][1] == Tokens["POpen"])  // (
-      { return _expr_lambda() }
+  fn _expr(self) { return self._expr_set() }
+  fn _expr_set(self) {
+    if (self.tokens[0][1] == Tokens["Bigger"]  // >
+      & self.tokens[1][1] == Tokens["POpen"])  // (
+      { return self._expr_lambda() }
     
-    left = _expr_obj()
-    if (tokens[0][1] == Tokens["Equals"]) {
-      _pop()
-      return Nodes["Assign"](left, _expr_set())
+    left = self._expr_obj()
+    if (self.tokens[0][1] == Tokens["Equals"]) {
+      self._pop()
+      return Nodes["Assign"](left, self._expr_set())
     }
     return left
   }
-  fn _expr_lambda() { // >(args) {block} 
-    _pop()
+  fn _expr_lambda(self) { // >(args) {block} 
+    self._pop()
     params = []
 
-    args = _args()
+    args = self._args()
     for (i=0; i<len(args); i=i+1) {
       if (args[i]["t"] == "Word" | args[i]["t"] == "Assign") { params.append(args[i]) }
       else { raise(Exception("parser: expected fn params to be Word/Assign")) }
     }
 
-    return Nodes["Lambda"](params, _block())
+    return Nodes["Lambda"](params, self._block())
   }
 
-  fn _expr_obj() {
-    if (tokens[0][1] != Tokens["BOpen"]) { return _expr_arr() }
+  fn _expr_obj(self) {
+    if (self.tokens[0][1] != Tokens["BOpen"]) { return self._expr_arr() }
     props = []
-    _pop()
+    self._pop()
 
-    for (_=0; tokens[0][1] != Tokens["EOF"] & tokens[0][1] != Tokens["BClose"]; _=0) {
-      if (tokens[0][1] == Tokens["Str"] | tokens[0][1] == Tokens["Int"]) {
-        key = (_pop())[0]
-      } else { key = (_expect(Tokens["Word"], "expected Word"))[0] }
+    while self.tokens[0][1] != Tokens["EOF"] & self.tokens[0][1] != Tokens["BClose"] {
+      if self.tokens[0][1] == Tokens["Str"] | self.tokens[0][1] == Tokens["Int"] {
+        key = (self._pop())[0]
+      } else { key = (self._expect(Tokens["Word"], "expected Word"))[0] }
 
-      if (tokens[0][1] == Tokens["Comma"]) {
-        _pop()
+      if (self.tokens[0][1] == Tokens["Comma"]) {
+        self._pop()
         props.append(Nodes["Prop"](key, None))
-      } else if (tokens[0][1] == Tokens["BClose"]) {
+      } else if (self.tokens[0][1] == Tokens["BClose"]) {
         props.append(Nodes["Prop"](key, None))
       } else {
-        _expect(Tokens["Colon"], "expected : following key")
-        props.append(Nodes["Prop"](key, _expr()))
+        self._expect(Tokens["Colon"], "expected : following key")
+        props.append(Nodes["Prop"](key, self._expr()))
 
-        if (tokens[0][1] != Tokens["BClose"]) { _expect(Tokens["Comma"], "expected , or } following prop") }
+        if (self.tokens[0][1] != Tokens["BClose"]) { self._expect(Tokens["Comma"], "expected , or } following prop") }
       }
     }
 
-    _expect(Tokens["BClose"], "expected } after object")
+    self._expect(Tokens["BClose"], "expected } after object")
     return Nodes["Object"](props)
   }
 
-  fn _expr_arr() {
-    if (tokens[0][1] != Tokens["SOpen"]) { return _expr_logic() }
+  fn _expr_arr(self) {
+    if (self.tokens[0][1] != Tokens["SOpen"]) { return self._expr_logic() }
     props = []
-    _pop()
-    for (_=0; tokens[0][1] != Tokens["EOF"] & tokens[0][1] != Tokens["SClose"]; _=0) {
-      props.append(_expr())
-      if (tokens[0][1] == Tokens["Comma"]) { _pop() }
+    self._pop()
+    while self.tokens[0][1] != Tokens["EOF"] & self.tokens[0][1] != Tokens["SClose"] {
+      props.append(self._expr())
+      if (self.tokens[0][1] == Tokens["Comma"]) { self._pop() }
     }
 
-    _expect(Tokens["SClose"], "expected ] after array")
+    self._expect(Tokens["SClose"], "expected ] after array")
     return Nodes["Array"](props)
   }
 
 
-  fn _expr_logic() {
-    left = _expr_math()
-    if ((["&", "|"]).__contains__(tokens[0][0])) {
-      op = (_pop())[0]
-      left = Nodes["BinOp"](left, _expr_math(), op)
+  fn _expr_logic(self) {
+    left = self._expr_math()
+    if self.tokens[0][0] in (["&", "|"]) {
+      op = (self._pop())[0]
+      left = Nodes["BinOp"](left, self._expr_math(), op)
     }
     return left
   }
-  fn _expr_math() {
-    left = _expr_call()
-    while ((["+", "-", "*", "/", "%", "<", ">", "==", "!=", "in"]).__contains__(tokens[0][0])) {
-      op = (_pop())[0]
-      left = Nodes["BinOp"](left, _expr_call(), op)
+  fn _expr_math(self) {
+    left = self._expr_call()
+    while self.tokens[0][0] in (["+", "-", "*", "/", "%", "<", ">", "==", "!=", "in"]) {
+      op = (self._pop())[0]
+      left = Nodes["BinOp"](left, self._expr_call(), op)
     }
     return left
   }
 
 
-  fn _expr_call() {
+  fn _expr_call(self) {
     fn _call(caller) {
-      e = Nodes["Fcall"](caller, _args())
-      while (tokens[0][1] == Tokens["POpen"]) { e = _call(e) }
+      e = Nodes["Fcall"](caller, self._args())
+      while (self.tokens[0][1] == Tokens["POpen"]) { e = _call(e) }
       return e
     }
-    left = _expr_member()
-    if (tokens[0][1] == Tokens["POpen"]) { return _call(left) }
+    left = self._expr_member()
+    if self.tokens[0][1] == Tokens["POpen"] { return _call(left) }
     return left
   }
 
-  fn _expr_member() {
-    left = _expr_final()
-    for (_=0; tokens[0][1] == Tokens["Dot"] | tokens[0][1] == Tokens["SOpen"]; _=0) {
-      op = _pop()
+  fn _expr_member(self) {
+    left = self._expr_final()
+    while self.tokens[0][1] == Tokens["Dot"] | self.tokens[0][1] == Tokens["SOpen"] {
+      op = self._pop()
       if (op[1] == Tokens["Dot"]) {
-        computed = False  prop = _expr_final()
+        computed = False  prop = self._expr_final()
         if (prop["t"] != "Word") { raise(Exception("parser: expected dot op to be followed by Word")) }
       } else {
-        computed = True   prop = _expr()
-        _expect(Tokens["SClose"], "expected ]")
+        computed = True   prop = self._expr()
+        self._expect(Tokens["SClose"], "expected ]")
       }
 
       left = Nodes["Member"](left, prop, computed)
@@ -153,140 +149,138 @@ fn Parser() {
   }
 
 
-  fn _expr_final() {
-    if (tokens[0][1] == Tokens["Word"]) { return Nodes["Word"]( (_pop())[0] ) }
-    else if (tokens[0][1] == Tokens["Int"]) { return Nodes["Int"](float( (_pop())[0] )) }
-    else if (tokens[0][1] == Tokens["Str"]) { return Nodes["Str"]( (_pop())[0] ) }
-    else if (tokens[0][1] == Tokens["POpen"]) { 
-      _pop()
-      val = _expr()
-      _expect(Tokens["PClose"], "expected )")
+  fn _expr_final(self) {
+    if self.tokens[0][1] == Tokens["Word"] { return Nodes["Word"]( (self._pop())[0] ) }
+    else if self.tokens[0][1] == Tokens["Int"] { return Nodes["Int"](float( (self._pop())[0] )) }
+    else if self.tokens[0][1] == Tokens["Str"] { return Nodes["Str"]( (self._pop())[0] ) }
+    else if self.tokens[0][1] == Tokens["POpen"] { 
+      self._pop()
+      val = self._expr()
+      self._expect(Tokens["PClose"], "expected )")
       return val
     } else { 
-      raise(Exception("parser: unexpected token '{}'".format(tokens[0][0])))
+      raise(Exception("parser: unexpected token '{}'".format(self.tokens[0][0])))
     }
   }
 
 
   // statements
-  fn _stmt_import() {
-    _pop()
+  fn _stmt_import(self) {
+    self._pop()
     // TODO:
-    // val = this._expr();
-    // if (val.t !== "Member" || val.t !== "Word") {}
-    val = (_expect(Tokens["Str"], "expected str after import"))[0]
+    // val = self._expr()
+    // if val.t != "Member" | val.t != "Word" {}
+    val = (self._expect(Tokens["Str"], "expected str after import"))[0]
     return Nodes["ImportStmt"](val)
   }
-  fn _stmt_fn() {
+  fn _stmt_fn(self) {
     isAsync = False
-    if ((_pop())[1] == Tokens["Async"]) { isAsync = True  _pop() }
+    if ((self._pop())[1] == Tokens["Async"]) { isAsync = True  self._pop() }
 
-    name = (_expect(Tokens["Word"], "expected name after fn"))[0]
+    name = (self._expect(Tokens["Word"], "expected name after fn"))[0]
     params = []
 
-    args = _args()
+    args = self._args()
     for (i=0; i<len(args); i=i+1) {
       if (args[i]["t"] == "Word" | args[i]["t"] == "Assign") { params.append(args[i]) }
       else { raise(Exception("parser: expected fn params to be Word/Assign")) }
     }
 
-    return Nodes["FnStmt"](name, params, _block(), isAsync)
+    return Nodes["FnStmt"](name, params, self._block(), isAsync)
   }
-  fn _stmt_ret() { 
-    _pop()
-    return Nodes["RetStmt"](_expr())
+  fn _stmt_ret(self) { 
+    self._pop()
+    return Nodes["RetStmt"](self._expr())
   }
 
-  fn _stmt_if() { 
-    _pop() 
-    cond = _expr()
-    body = _block()
+  fn _stmt_if(self) { 
+    self._pop() 
+    cond = self._expr()
+    body = self._block()
 
     alt = []
-    if (tokens[0][1] == Tokens["Else"]) {
-      _pop()
-      if (tokens[0][1] == Tokens["If"]) { alt = [_stmt_if()] }
-                                  else  { alt = _block() }
+    if (self.tokens[0][1] == Tokens["Else"]) {
+      self._pop()
+      if (self.tokens[0][1] == Tokens["If"]) { alt = [self._stmt_if()] }
+                                       else  { alt = self._block() }
     }
     return Nodes["IfStmt"](cond, body, alt)
   }
 
-  fn _stmt_for() {
-    _pop()
-    _expect(Tokens["POpen"], "expected ( after for")
-    init = _expr()
-    _expect(Tokens["Semi"], "expected ; following init")
-    cond = _expr()
-    _expect(Tokens["Semi"], "expected ; following condition")
-    after = _expr()
-    _expect(Tokens["PClose"], "expected ) after for")
+  fn _stmt_for(self) {
+    self._pop()
+    self._expect(Tokens["POpen"], "expected ( after for")
+    init = self._expr()
+    self._expect(Tokens["Semi"], "expected ; following init")
+    cond = self._expr()
+    self._expect(Tokens["Semi"], "expected ; following condition")
+    after = self._expr()
+    self._expect(Tokens["PClose"], "expected ) after for")
 
-    return Nodes["ForStmt"](init, cond, after, _block())
+    return Nodes["ForStmt"](init, cond, after, self._block())
   }
-  fn _stmt_while() {
-    _pop()
-    return Nodes["WhileStmt"](_expr(), _block())
+  fn _stmt_while(self) {
+    self._pop()
+    return Nodes["WhileStmt"](self._expr(), self._block())
   }
 
-  fn _stmt_class() {
-    _pop()
-    name = (_expect(Tokens["Word"], "expected Word after class"))[0]
+  fn _stmt_class(self) {
+    self._pop()
+    name = (self._expect(Tokens["Word"], "expected Word after class"))[0]
     inherits = []
 
-    args = _args()
+    args = self._args()
     for (i=0; i<len(args); i=i+1) {
       if (args[i]["t"] != "Word") { raise(Exception("parser: expected class inherits to be Word")) }
       inherits.append(args[i]["val"])
     }
 
-    return Nodes["ClassStmt"](name, inherits, _block())
+    return Nodes["ClassStmt"](name, inherits, self._block())
   }
 
-  fn _stmt_trycatch() {
-    _pop()
-    body = _block()
-    _expect(Tokens["Catch"], "expected catch after try")
-    asVar = [_expr_member(), (_expect(Tokens["Word"], "expected var name after catch"))[0]]
-    alt = _block()
+  fn _stmt_trycatch(self) {
+    self._pop()
+    body = self._block()
+    self._expect(Tokens["Catch"], "expected catch after try")
+    asVar = [self._expr_member(), (self._expect(Tokens["Word"], "expected var name after catch"))[0]]
+    alt = self._block()
 
     return Nodes["TryCatch"](body, alt, asVar)
   }
 
 
   // reusable stuff
-  fn __arglist() {
+  fn __arglist(self) {
     fn parse() {
-      left = _expr()
-      if (tokens[0][1] == Tokens["Equals"]) {
-        _pop()
+      left = self._expr()
+      if (self.tokens[0][1] == Tokens["Equals"]) {
+        self._pop()
         return Nodes["Assign"](left, parse())
       }
       return left
     }
 
     args = [parse()]
-    for (_=0; tokens[0][1] == Tokens["Comma"] & _pop(); _=0) { args.append(parse()) }
+    while self.tokens[0][1] == Tokens["Comma"] & self._pop() { args.append(parse()) }
     return args
   }
 
-  fn _args() {
-    _expect(Tokens["POpen"], "expected ( in args")
+  fn _args(self) {
+    self._expect(Tokens["POpen"], "expected ( in args")
     args = []
-    if (tokens[0][1] != Tokens["PClose"]) { args = __arglist() }
-    _expect(Tokens["PClose"], "expected ) in args")
+    if (self.tokens[0][1] != Tokens["PClose"]) { args = self.__arglist() }
+    self._expect(Tokens["PClose"], "expected ) in args")
     return args
   }
 
-  fn _block() {
-    _expect(Tokens["BOpen"], "expected { in block")
+  fn _block(self) {
+    self._expect(Tokens["BOpen"], "expected { in block")
     body = []
-    for (_=0; tokens[0][1] != Tokens["EOF"] & tokens[0][1] != Tokens["BClose"]; _=0) {
-      body.append(_stmt())
+    while self.tokens[0][1] != Tokens["EOF"] & self.tokens[0][1] != Tokens["BClose"] {
+      body.append(self._stmt())
     }
 
-    _expect(Tokens["BClose"], "expected } in block")
+    self._expect(Tokens["BClose"], "expected } in block")
     return body
   }
-
-  return types.SimpleNamespace(parse=parse)
 }

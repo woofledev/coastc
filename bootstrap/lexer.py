@@ -28,10 +28,10 @@ def tokenize(text):
       out.append(_tok(char,optable[char]))
     elif (char == "/"):
       if (text[(i + 1)] == "/"):
-        _ = 0
+        
         while ((i < len(text)) and (text[i] != "\n")):
           i = (i + 1)
-          _ = 0
+
       else:
         out.append(_tok(char,Tokens["BinOp"]))
 
@@ -48,7 +48,7 @@ def tokenize(text):
     elif (char == "\""):
       i = (i + 1)
       acc = ""
-      _ = 0
+      
       while (i < len(text)):
         if (text[i] == "\""):
           break
@@ -72,28 +72,28 @@ def tokenize(text):
           acc = (acc + text[i])
 
         i = (i + 1)
-        _ = 0
+
       out.append(_tok(acc,Tokens["Str"]))
     elif isint(char):
       acc = ""
       hasDot = False
-      _ = 0
+      
       while ((i < len(text)) and (isint(text[i]) or ((text[i] == ".") and (hasDot != True)))):
         if (text[i] == "."):
           hasDot = True
 
         acc = (acc + text[i])
         i = (i + 1)
-        _ = 0
+
       out.append(_tok(acc,Tokens["Int"]))
       i = (i - 1)
     elif isalpha(char,True):
       acc = ""
-      _ = 0
+      
       while ((i < len(text)) and isalpha(text[i],False)):
         acc = (acc + text[i])
         i = (i + 1)
-        _ = 0
+
       tok = Tokens["Word"]
       if (acc in keywords):
         tok = keywords[acc]

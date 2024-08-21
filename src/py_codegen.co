@@ -10,10 +10,12 @@ try_float = >(val) {
 
 
 class Codegen() {
-  lambda_c = 0
-  indent_c = 0
-  head = ""
-  out = ""
+  fn __init__(self) {
+    self.lambda_c = 0
+    self.indent_c = 0
+    self.head = ""
+    self.out = ""
+  }
 
   fn idt(self) { return "  " * self.indent_c }
   fn parse_block(self, body) {
