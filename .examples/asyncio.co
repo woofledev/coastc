@@ -1,0 +1,17 @@
+// not very proud of this example but it'll do
+import "asyncio"
+
+async fn process(data /*str*/, delay /*int*/) /*str*/ {
+  print("processing... {}".format(data))
+  await(asyncio.sleep(delay))
+  print("processing for {} done!".format(data))
+  return data
+}
+
+
+async fn main() /*void*/ {
+  asyncio.create_task(process("important stuff", 5))
+  await(process("await stuff", 8))
+  await(process("after-await stuff", 3))
+}
+asyncio.run(main())

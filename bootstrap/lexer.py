@@ -32,6 +32,13 @@ def tokenize(text):
         while ((i < len(text)) and (text[i] != "\n")):
           i = (i + 1)
 
+      elif (text[(i + 1)] == "*"):
+        i = (i + 2)
+        
+        while ((i < len(text)) and ((text[i] != "*") and (text[(i + 1)] != "/"))):
+          i = (i + 1)
+
+        i = (i + 1)
       else:
         out.append(_tok(char,Tokens["BinOp"]))
 
