@@ -36,8 +36,8 @@ fn tokenize(text) {
         while i<len(text) & text[i] != "\n" { i=i+1 }
       } else if text[i+1] == "*" {  /* multiline comments */
         i=i+2
-        while i<len(text) & (text[i] != "*" & text[i+1] != "/") { i=i+1 }
-        i=i+1     // advance for the remaining /
+        while i<len(text) &  not(text[i] == "*" & text[i+1] == "/") { i=i+1 }
+        i=i+1     // advance for the remaining */
       } else { out.append(_tok(char, Tokens["BinOp"])) }
 
     } else if (char == "!") {
