@@ -36,7 +36,7 @@ class Codegen():
       cg.out = (cg.out + ",")
       i = (i + 1)
     if ((len(cg.out) > 0) and (cg.out[(0 - 1)] == ",")):
-      cg.out = cg.out[:-1]
+      cg.out = cg.out[slice((0 - 1))]
 
     return [cg.head,cg.out,]
 

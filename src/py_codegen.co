@@ -34,7 +34,7 @@ class Codegen() {
     }
 
     if (len(cg.out) > 0 & cg.out[0-1] == ",") {  // slice last comma if its there
-      cg.out = __inline("cg.out[:-1]")
+      cg.out = cg.out[slice(0-1)]
     }
     return [cg.head, cg.out]
   }
