@@ -36,6 +36,9 @@ class Codegen() {
     if (len(cg.out) > 0 & cg.out[0-1] == ",") {  // slice last comma if its there
       cg.out = cg.out[slice(0-1)]
     }
+
+    self.indent_c = cg.indent_c
+    self.lambda_c = cg.lambda_c
     return [cg.head, cg.out]
   }
 

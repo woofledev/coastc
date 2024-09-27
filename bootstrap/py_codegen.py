@@ -38,6 +38,8 @@ class Codegen():
     if ((len(cg.out) > 0) and (cg.out[(0 - 1)] == ",")):
       cg.out = cg.out[slice((0 - 1))]
 
+    self.indent_c = cg.indent_c
+    self.lambda_c = cg.lambda_c
     return [cg.head,cg.out,]
 
   def run(self,node):
