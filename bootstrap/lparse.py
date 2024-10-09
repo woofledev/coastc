@@ -2,7 +2,7 @@ import defs, lexer
 
 Tokens = defs.Tokens
 Nodes = defs.Nodes
-class Parser():
+class Parser:
   def __init__(self):
     self.tokens = []
 
@@ -154,13 +154,19 @@ class Parser():
   def _expr_member(self):
     left = self._expr_final()
     
-    while ((self.tokens[0][1] == Tokens["Dot"]) or (self.tokens[0][1] == Tokens["SOpen"])):
+    while (((self.tokens[0][1] == Tokens["Dot"]) or (self.tokens[0][1] == Tokens["SOpen"])) or (self.tokens[0][1] == Tokens["Colon"])):
       op = self._pop()
       if (op[1] == Tokens["Dot"]):
         computed = False
         prop = self._expr_final()
         if (prop["t"] != "Word"):
           raise(Exception("parser: expected dot op to be followed by Word"))
+
+      elif (op[1] == Tokens["Colon"]):
+        computed = True
+        prop = self._expr_final()
+        if (prop["t"] == "Word"):
+          prop = Nodes["Str"](prop["val"])
 
       else:
         computed = True
@@ -248,15 +254,11 @@ class Parser():
   def _stmt_class(self):
     self._pop()
     name = self._expect(Tokens["Word"],"expected Word after class")[0]
-    inherits = []
-    args = self._args()
-    i = 0
-    while (i < len(args)):
-      if (args[i]["t"] != "Word"):
-        raise(Exception("parser: expected class inherits to be Word"))
+    inherits = ""
+    if (self.tokens[0][1] == Tokens["Colon"]):
+      self._pop()
+      inherits = self._expr()
 
-      inherits.append(args[i]["val"])
-      i = (i + 1)
     return Nodes["ClassStmt"](name,inherits,self._block())
 
   def _stmt_trycatch(self):

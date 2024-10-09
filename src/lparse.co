@@ -2,7 +2,7 @@ import "defs, lexer"
 Tokens = defs.Tokens
 Nodes = defs.Nodes
 
-class Parser() {
+class Parser {
   fn __init__(self) {
     self.tokens = []
   }
@@ -122,41 +122,44 @@ class Parser() {
 
   fn _expr_call(self) {
     fn _call(caller) {
-      e = Nodes["Fcall"](caller, self._args())
-      while (self.tokens[0][1] == Tokens["POpen"]) { e = _call(e) }
+      e = Nodes:Fcall(caller, self._args())
+      while (self.tokens[0][1] == Tokens:POpen) { e = _call(e) }
       return e
     }
     left = self._expr_member()
-    if self.tokens[0][1] == Tokens["POpen"] { return _call(left) }
+    if self.tokens[0][1] == Tokens:POpen { return _call(left) }
     return left
   }
 
   fn _expr_member(self) {
     left = self._expr_final()
-    while self.tokens[0][1] == Tokens["Dot"] | self.tokens[0][1] == Tokens["SOpen"] {
+    while (self.tokens[0][1] == Tokens:Dot | self.tokens[0][1] == Tokens:SOpen) | self.tokens[0][1] == Tokens:Colon {
       op = self._pop()
-      if (op[1] == Tokens["Dot"]) {
+      if (op[1] == Tokens:Dot) {
         computed = False  prop = self._expr_final()
         if (prop["t"] != "Word") { raise(Exception("parser: expected dot op to be followed by Word")) }
+      } else if (op[1] == Tokens:Colon) {
+        computed = True   prop = self._expr_final()
+        if (prop["t"] == "Word") { prop = Nodes:Str(prop["val"]) }
       } else {
         computed = True   prop = self._expr()
-        self._expect(Tokens["SClose"], "expected ]")
+        self._expect(Tokens:SClose, "expected ]")
       }
 
-      left = Nodes["Member"](left, prop, computed)
+      left = Nodes:Member(left, prop, computed)
     }
     return left
   }
 
 
   fn _expr_final(self) {
-    if self.tokens[0][1] == Tokens["Word"] { return Nodes["Word"]( (self._pop())[0] ) }
-    else if self.tokens[0][1] == Tokens["Int"] { return Nodes["Int"](float( (self._pop())[0] )) }
-    else if self.tokens[0][1] == Tokens["Str"] { return Nodes["Str"]( (self._pop())[0] ) }
-    else if self.tokens[0][1] == Tokens["POpen"] { 
+    if self.tokens[0][1] == Tokens:Word { return Nodes:Word( (self._pop())[0] ) }
+    else if self.tokens[0][1] == Tokens:Int { return Nodes:Int(float( (self._pop())[0] )) }
+    else if self.tokens[0][1] == Tokens:Str { return Nodes:Str( (self._pop())[0] ) }
+    else if self.tokens[0][1] == Tokens:POpen { 
       self._pop()
       val = self._expr()
-      self._expect(Tokens["PClose"], "expected )")
+      self._expect(Tokens:PClose, "expected )")
       return val
     } else { 
       raise(Exception("parser: unexpected token '{}'".format(self.tokens[0][0])))
@@ -224,17 +227,16 @@ class Parser() {
     return Nodes["WhileStmt"](self._expr(), self._block())
   }
 
+
   fn _stmt_class(self) {
     self._pop()
     name = (self._expect(Tokens["Word"], "expected Word after class"))[0]
-    inherits = []
-
-    args = self._args()
-    for (i=0; i<len(args); i=i+1) {
-      if (args[i]["t"] != "Word") { raise(Exception("parser: expected class inherits to be Word")) }
-      inherits.append(args[i]["val"])
+    inherits = ""
+    if (self.tokens[0][1] == Tokens["Colon"]) {
+      self._pop()
+      inherits = self._expr()
     }
-
+    
     return Nodes["ClassStmt"](name, inherits, self._block())
   }
 
@@ -247,6 +249,7 @@ class Parser() {
 
     return Nodes["TryCatch"](body, alt, asVar)
   }
+
 
 
   // reusable stuff

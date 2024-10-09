@@ -16,16 +16,16 @@ _tok = >(v, c) { return [v, c] }
 fn tokenize(text) {
   out = []
   optable = {
-    "(": Tokens["POpen"], ")": Tokens["PClose"], "{": Tokens["BOpen"], "}": Tokens["BClose"],  "[": Tokens["SOpen"], "]": Tokens["SClose"],
-    "+": Tokens["BinOp"], "-": Tokens["BinOp"], "*": Tokens["BinOp"], "%": Tokens["BinOp"],   "<": Tokens["Smaller"], ">": Tokens["Bigger"], "in": Tokens["BinOp"],
-    ".": Tokens["Dot"],   ",": Tokens["Comma"], ":": Tokens["Colon"], ";": Tokens["Semi"],    "&": Tokens["And"],     "|": Tokens["Or"],
+    "(": Tokens:POpen, ")": Tokens:PClose, "{": Tokens:BOpen, "}": Tokens:BClose,  "[": Tokens:SOpen, "]": Tokens:SClose,
+    "+": Tokens:BinOp, "-": Tokens:BinOp,  "*": Tokens:BinOp, "%": Tokens:BinOp,   "<": Tokens:Smaller, ">": Tokens:Bigger, "in": Tokens:BinOp,
+    ".": Tokens:Dot,   ",": Tokens:Comma,  ":": Tokens:Colon, ";": Tokens:Semi,    "&": Tokens:And,     "|": Tokens:Or,
   }
   keywords = {
-    "import": Tokens["Import"],
-    "fn": Tokens["Fn"], "return": Tokens["Ret"],
-    "if": Tokens["If"], "else": Tokens["Else"], "for": Tokens["For"],
-    "while": Tokens["While"], "class": Tokens["Class"],
-    "async": Tokens["Async"],  "try": Tokens["Try"], "catch": Tokens["Catch"],
+    "import": Tokens:Import,
+    "fn": Tokens:Fn, "return": Tokens:Ret,
+    "if": Tokens:If,  "else": Tokens:Else, "for": Tokens:For,
+    "while": Tokens:While,  "class": Tokens:Class,
+    "async": Tokens:Async,  "try": Tokens:Try, "catch": Tokens:Catch,
   }
 
   for (i=0; i<len(text); i=i+1) {
@@ -88,6 +88,6 @@ fn tokenize(text) {
     }
   }
 
-  out.append(_tok("<EOF>", Tokens["EOF"]))
+  out.append(_tok("<EOF>", Tokens:EOF))
   return out
 }

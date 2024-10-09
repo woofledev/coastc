@@ -11,7 +11,7 @@ def __lambda_1(val):
 
 
 try_float = __lambda_1
-class Codegen():
+class Codegen:
   def __init__(self):
     self.lambda_c = 0
     self.indent_c = 0
@@ -99,9 +99,13 @@ class Codegen():
       self.out = (self.out + ":\n")
       self.out = (self.out + self.parse_block(node["body"]))
     elif (node["t"] == "ClassStmt"):
-      self.out = ((self.out + idt()) + "class ")
-      self.out = (self.out + "{}({}):\n".format(node["name"],",".join(node["inherits"])))
-      self.out = (self.out + self.parse_block(node["body"]))
+      self.out = ((self.out + idt()) + "class {}".format(node["name"]))
+      if (node["inherits"] != ""):
+        self.out = (self.out + "(")
+        run(node["inherits"])
+        self.out = (self.out + ")")
+
+      self.out = ((self.out + ":\n") + self.parse_block(node["body"]))
     elif (node["t"] == "TryCatch"):
       self.out = (self.out + "try:\n")
       self.out = (self.out + self.parse_block(node["body"]))

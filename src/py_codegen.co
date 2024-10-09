@@ -9,7 +9,7 @@ try_float = >(val) {
 }
 
 
-class Codegen() {
+class Codegen {
   fn __init__(self) {
     self.lambda_c = 0
     self.indent_c = 0
@@ -101,16 +101,22 @@ class Codegen() {
       self.out = self.out + self.parse_block(node["body"])
 
     } else if (node["t"] == "ClassStmt") {
-      self.out = self.out + idt() + "class "
-      self.out = self.out + "{}({}):\n".format(node["name"], ",".join(node["inherits"]))
-      self.out = self.out + self.parse_block(node["body"])
+      self.out = self.out + idt() + "class {}".format(node:name)
+      if (node:inherits != "") {
+        self.out = self.out + "("
+        run(node:inherits)
+        self.out = self.out + ")"
+      }
+
+      self.out = self.out + ":\n" + self.parse_block(node:body)
+    
     } else if (node["t"] == "TryCatch") {
       self.out = self.out + "try:\n"
-      self.out = self.out + self.parse_block(node["body"])
+      self.out = self.out + self.parse_block(node:body)
       self.out = self.out + idt() + "except "
-      run(node["asVar"][0])
-      self.out = self.out + " as {}:\n".format(node["asVar"][1])
-      self.out = self.out + self.parse_block(node["alt"])
+      run(node:asVar[0])
+      self.out = self.out + " as {}:\n".format(node:asVar[1])
+      self.out = self.out + self.parse_block(node:alt)
 
   
     } else if (node["t"] == "Fcall") {
