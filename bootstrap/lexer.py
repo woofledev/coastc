@@ -1,4 +1,4 @@
-import defs, re
+import defs,re
 def __lambda_1(c,first):
   if first:
     return bool(re.match("^[A-Za-z_]+$",c))

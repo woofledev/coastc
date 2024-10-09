@@ -1,5 +1,5 @@
 // not very proud of this example but it'll do
-import "asyncio"
+import [asyncio]
 
 async fn process(data /*str*/, delay /*int*/) /*str*/ {
   print("processing... {}".format(data))

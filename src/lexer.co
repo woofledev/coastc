@@ -1,4 +1,4 @@
-import "defs, re"
+import [defs, re]
 Tokens = defs.Tokens
 
 isalpha = >(c, first) {

@@ -1,4 +1,4 @@
-import "defs, lexer"
+import [defs, lexer]
 Tokens = defs.Tokens
 Nodes = defs.Nodes
 
@@ -170,15 +170,11 @@ class Parser {
   // statements
   fn _stmt_import(self) {
     self._pop()
-    // TODO:
-    // val = self._expr()
-    // if val.t != "Member" | val.t != "Word" {}
-    val = (self._expect(Tokens["Str"], "expected str after import"))[0]
-    return Nodes["ImportStmt"](val)
+    return Nodes:ImportStmt(self._expr_arr())
   }
   fn _stmt_fn(self) {
     isAsync = False
-    if ((self._pop())[1] == Tokens["Async"]) { isAsync = True  self._pop() }
+    if ((self._pop())[1] == Tokens:Async) { isAsync = True  self._pop() }
 
     name = (self._expect(Tokens["Word"], "expected name after fn"))[0]
     params = []

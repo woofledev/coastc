@@ -1,4 +1,4 @@
-import "json"
+import [json]
 
 try_float = >(val) {
   try {
@@ -58,10 +58,14 @@ class Codegen {
       self.out = self.out + " = "
       run(node["val"])
     } else if (node["t"] == "ImportStmt") {
-      self.head = self.head + "import {}\n".format(node["mod"])
+      args = (self.do_args(node:mod:props))[1]
+      args = args.replace("\"", "")
+      self.head = self.head + "import {}\n".format(args)
+
     } else if (node["t"] == "RetStmt") {
       self.out = self.out + "return "
       run(node["expr"])
+
     } else if (node["t"] == "FnStmt") {
       if (node["isAsync"]) { self.out = self.out + "async " }
       self.out = self.out + "def {}(".format(node["name"])

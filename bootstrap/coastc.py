@@ -1,4 +1,4 @@
-import lparse, py_codegen, sys
+import sys,lparse,py_codegen
 
 parser = lparse.Parser()
 cg = py_codegen.Codegen()

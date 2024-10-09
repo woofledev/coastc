@@ -59,7 +59,9 @@ class Codegen:
       self.out = (self.out + " = ")
       run(node["val"])
     elif (node["t"] == "ImportStmt"):
-      self.head = (self.head + "import {}\n".format(node["mod"]))
+      args = self.do_args(node["mod"]["props"])[1]
+      args = args.replace("\"","")
+      self.head = (self.head + "import {}\n".format(args))
     elif (node["t"] == "RetStmt"):
       self.out = (self.out + "return ")
       run(node["expr"])

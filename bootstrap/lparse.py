@@ -1,4 +1,4 @@
-import defs, lexer
+import defs,lexer
 
 Tokens = defs.Tokens
 Nodes = defs.Nodes
@@ -195,8 +195,7 @@ class Parser:
 
   def _stmt_import(self):
     self._pop()
-    val = self._expect(Tokens["Str"],"expected str after import")[0]
-    return Nodes["ImportStmt"](val)
+    return Nodes["ImportStmt"](self._expr_arr())
 
   def _stmt_fn(self):
     isAsync = False
