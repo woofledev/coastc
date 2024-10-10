@@ -6,7 +6,7 @@ Tokens = {
   EIf: 15, NEIf: 16, Smaller: 17, Bigger: 18, And: 19, Or: 20,        // EIf==, NEIf!=, Smaller<, Bigger>
   Import: 21, Fn: 22, Ret: 23, If: 24, Else: 25,  For: 26, 
   While: 27, Class: 28, Async: 29, 
-  Try: 30, Catch: 31,   EOF: 32,
+  Try: 30, Catch: 31, Foreach: 32,  EOF: 33,
 }
 
 Nodes = {
@@ -17,6 +17,7 @@ Nodes = {
   RetStmt: >(expr)                    {return {t:"RetStmt", expr}},
   IfStmt: >(expr, body, alt)          {return {t:"IfStmt", expr, body, alt}},
   ForStmt: >(init, expr, after, body) {return {t:"ForStmt", init, expr, after, body}},
+  ForeachStmt: >(expr, body)          {return {t:"ForeachStmt", expr, body}},
   WhileStmt: >(expr, body)           {return {t:"WhileStmt", expr, body}},
   ClassStmt: >(name, inherits, body) {return {t:"ClassStmt", name, inherits, body}},
   TryCatch:  >(body, alt, asVar) {return {t:"TryCatch", body, alt, asVar}},

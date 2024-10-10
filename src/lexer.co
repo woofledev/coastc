@@ -23,7 +23,7 @@ fn tokenize(text) {
   keywords = {
     "import": Tokens:Import,
     "fn": Tokens:Fn, "return": Tokens:Ret,
-    "if": Tokens:If,  "else": Tokens:Else, "for": Tokens:For,
+    "if": Tokens:If,  "else": Tokens:Else, "for": Tokens:For, "foreach": Tokens:Foreach,
     "while": Tokens:While,  "class": Tokens:Class,
     "async": Tokens:Async,  "try": Tokens:Try, "catch": Tokens:Catch,
   }

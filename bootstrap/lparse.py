@@ -36,6 +36,8 @@ class Parser:
       return self._stmt_if()
     elif (self.tokens[0][1] == Tokens["For"]):
       return self._stmt_for()
+    elif (self.tokens[0][1] == Tokens["Foreach"]):
+      return self._stmt_foreach()
     elif (self.tokens[0][1] == Tokens["While"]):
       return self._stmt_while()
     elif (self.tokens[0][1] == Tokens["Class"]):
@@ -245,6 +247,10 @@ class Parser:
     after = self._expr()
     self._expect(Tokens["PClose"],"expected ) after for")
     return Nodes["ForStmt"](init,cond,after,self._block())
+
+  def _stmt_foreach(self):
+    self._pop()
+    return Nodes["ForeachStmt"](self._expr(),self._block())
 
   def _stmt_while(self):
     self._pop()

@@ -95,6 +95,13 @@ class Codegen:
       self.out = (self.out + idt())
       run(node["after"])
       self.indent_c = (self.indent_c - 1)
+    elif (node["t"] == "ForeachStmt"):
+      self.out = (self.out + "\n{}for ".format(idt()))
+      run(node["expr"]["l"])
+      self.out = (self.out + " in ")
+      run(node["expr"]["r"])
+      self.out = (self.out + ":\n")
+      self.out = (self.out + self.parse_block(node["body"]))
     elif (node["t"] == "WhileStmt"):
       self.out = (self.out + "\n{}while ".format(idt()))
       run(node["expr"])

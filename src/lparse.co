@@ -27,6 +27,7 @@ class Parser {
     else if self.tokens[0][1] == Tokens["Ret"] { return self._stmt_ret() }
     else if self.tokens[0][1] == Tokens["If"]  { return self._stmt_if() }
     else if self.tokens[0][1] == Tokens["For"] { return self._stmt_for() }
+    else if self.tokens[0][1] == Tokens["Foreach"] { return self._stmt_foreach() }
     else if self.tokens[0][1] == Tokens["While"] { return self._stmt_while() }
     else if self.tokens[0][1] == Tokens["Class"] { return self._stmt_class() }
     else if self.tokens[0][1] == Tokens["Try"]   { return self._stmt_trycatch() }
@@ -216,11 +217,16 @@ class Parser {
     after = self._expr()
     self._expect(Tokens["PClose"], "expected ) after for")
 
-    return Nodes["ForStmt"](init, cond, after, self._block())
+    return Nodes:ForStmt(init, cond, after, self._block())
   }
+  fn _stmt_foreach(self) {
+    self._pop()
+    return Nodes:ForeachStmt(self._expr(), self._block())
+  }
+
   fn _stmt_while(self) {
     self._pop()
-    return Nodes["WhileStmt"](self._expr(), self._block())
+    return Nodes:WhileStmt(self._expr(), self._block())
   }
 
 
