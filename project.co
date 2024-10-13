@@ -1,0 +1,3 @@
+name = "coastc"
+out_dir = "dist/{}/"
+std_features = []

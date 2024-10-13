@@ -10,7 +10,7 @@ a little language that compiles into python (WIP)
 
 ## example:
 ```
-import "os"
+import [os]
 fn greet(name) {
   print("hello, {}!".format(name))
 }
@@ -23,11 +23,11 @@ greet(os.getlogin())
 ```sh
 git clone https://github.com/woofledev/coastc.git
 cd coastc
-python bootstrap/coastc.py .examples/hello.co hello.py
+python bootstrap/coastc .examples/hello.co > hello.py
 python hello.py
 
-# you can (optionally) build the language from its own source using:
-sh build.sh
+# you can build the language into dist/ using
+python bootstrap/coastc
 ```
 
-**PLEASE NOTE:** this language is very much in it's early stages of development. core features are implemented, but there's still a LOT that needs to be done.
+**PLEASE NOTE:** this language is still alpha. there's still a LOT that needs to be done, but it's usable.
