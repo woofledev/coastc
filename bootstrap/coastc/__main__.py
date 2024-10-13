@@ -19,49 +19,62 @@ def main():
 
 
   args = parser.parse_args()
-  if args.file:
-    f = open(args.file,"r")
-    code = f.read()
-    f.close()
-    print(parse_str(code),end = "")
-  else:
-    f = open("./project.co","r")
-    proj_code = f.read()
-    f.close()
-    verbose("running project file...")
-    proj_code = parse_str(proj_code)
-    proj_var = {}
-    exec(proj_code,{},proj_var)
-    verbose("project file vars: {}".format(proj_var))
-    preludes = ""
-    
-    for k in proj_var.get("std_features",[]):
-      preludes = ((preludes + STD_FEATURES[k]) + "\n")
+  try:
+    if args.file:
+      f = open(args.file,"r")
+      code = f.read()
+      f.close()
+      print(parse_str(code),end = "")
+    else:
+      f = open("./project.co","r")
+      proj_code = f.read()
+      f.close()
+      verbose("running project file...")
+      proj_code = parse_str(proj_code)
+      proj_var = {}
+      exec(proj_code,{},proj_var)
+      verbose("project file vars: {}".format(proj_var))
+      preludes = ""
+      
+      for k in proj_var.get("std_features",[]):
+        preludes = ((preludes + STD_FEATURES[k]) + "\n")
 
-    files = glob.glob(CO_GLOB,recursive = True)
-    verbose("globbed {} files from {}".format(len(files),CO_GLOB))
-    OUT_DIR = "dist/{}/"
-    if ("out_dir" in proj_var):
-      OUT_DIR = proj_var["out_dir"]
+      files = glob.glob(CO_GLOB,recursive = True)
+      verbose("globbed {} files from {}".format(len(files),CO_GLOB))
+      OUT_DIR = "dist/{}/"
+      if ("out_dir" in proj_var):
+        OUT_DIR = proj_var["out_dir"]
 
-    os.makedirs(OUT_DIR.format(proj_var["name"]),exist_ok = True)
-    
-    for src in files:
-      dest = (OUT_DIR.format(proj_var["name"]) + src[slice(4,None)])
-      dest = (dest[slice((0 - 2))] + "py")
-      verbose("{} -> {}".format(src,dest))
-      os.makedirs(os.path.dirname(dest),exist_ok = True)
-      inf = open(src,"r")
-      source = inf.read()
-      inf.close()
-      outf = open(dest,"w")
-      outf.write((preludes + parse_str(source)))
-      outf.close()
+      os.makedirs(OUT_DIR.format(proj_var["name"]),exist_ok = True)
+      
+      for src in files:
+        try:
+          dest = (OUT_DIR.format(proj_var["name"]) + src[slice(4,None)])
+          dest = (dest[slice((0 - 2))] + "py")
+          verbose("{} -> {}".format(src,dest))
+          os.makedirs(os.path.dirname(dest),exist_ok = True)
+          inf = open(src,"r")
+          source = inf.read()
+          inf.close()
+          outf = open(dest,"w")
+          outf.write((preludes + parse_str(source)))
+          outf.close()
+        except Exception as e:
+          if str(e).startswith("parser:"):
+            [_,pos,msg,] = str(e).split(":")
+            pos = (source[slice(0,int(pos))].count("\n") + 1)
+            print("parser error: {} ln {}: {}".format(src,pos,msg))
 
-    if ("postprocess" in proj_var):
-      verbose("calling postprocess()")
-      proj_var["postprocess"]()
 
+
+      if ("postprocess" in proj_var):
+        verbose("calling postprocess()")
+        proj_var["postprocess"]()
+
+
+  except Exception as e:
+    print("error: {}".format(e))
+    sys.exit(1)
 
 
 if (__name__ == "__main__"):

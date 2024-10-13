@@ -9,8 +9,8 @@ def __lambda_2(c):
   return bool(re.match("^[0-9]+$",c))
 def __lambda_3(c):
   return bool(re.match("^\\s*$",c))
-def __lambda_4(v,c):
-  return [v,c,]
+def __lambda_4(v,c,pos):
+  return [v,c,pos,]
 
 Tokens = defs.Tokens
 isalpha = __lambda_1
@@ -25,7 +25,7 @@ def tokenize(text):
   while (i < len(text)):
     char = text[i]
     if (char in optable):
-      out.append(_tok(char,optable[char]))
+      out.append(_tok(char,optable[char],i))
     elif (char == "/"):
       if (text[(i + 1)] == "/"):
         
@@ -40,17 +40,17 @@ def tokenize(text):
 
         i = (i + 1)
       else:
-        out.append(_tok(char,Tokens["BinOp"]))
+        out.append(_tok(char,Tokens["BinOp"],i))
 
     elif (char == "!"):
       i = (i + 1)
-      out.append(_tok("!=",Tokens["NEIf"]))
+      out.append(_tok("!=",Tokens["NEIf"],i))
     elif (char == "="):
       if (text[(i + 1)] == "="):
         i = (i + 1)
-        out.append(_tok("==",Tokens["EIf"]))
+        out.append(_tok("==",Tokens["EIf"],i))
       else:
-        out.append(_tok(char,Tokens["Equals"]))
+        out.append(_tok(char,Tokens["Equals"],i))
 
     elif (char == "\""):
       i = (i + 1)
@@ -80,7 +80,7 @@ def tokenize(text):
 
         i = (i + 1)
 
-      out.append(_tok(acc,Tokens["Str"]))
+      out.append(_tok(acc,Tokens["Str"],i))
     elif isint(char):
       acc = ""
       hasDot = False
@@ -92,7 +92,7 @@ def tokenize(text):
         acc = (acc + text[i])
         i = (i + 1)
 
-      out.append(_tok(acc,Tokens["Int"]))
+      out.append(_tok(acc,Tokens["Int"],i))
       i = (i - 1)
     elif isalpha(char,True):
       acc = ""
@@ -105,12 +105,12 @@ def tokenize(text):
       if (acc in keywords):
         tok = keywords[acc]
 
-      out.append(_tok(acc,tok))
+      out.append(_tok(acc,tok,i))
       i = (i - 1)
     elif (isnone(char) != True):
       raise(Exception(("lexer:unrecognized: " + char)))
 
     i = (i + 1)
-  out.append(_tok("<EOF>",Tokens["EOF"]))
+  out.append(_tok("<EOF>",Tokens["EOF"],i))
   return out
 

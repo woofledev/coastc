@@ -20,10 +20,11 @@ fn main() {
   parser = argparse.ArgumentParser()
   parser.add_argument("file", nargs="?", help="file to compile")
   parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+  
   fn verbose(s) { if args.verbose { print(s) } }
-
   args = parser.parse_args()
 
+try {
   if args.file {
     f = open(args.file, "r")
     code = f.read()
@@ -55,6 +56,7 @@ fn main() {
     os.makedirs(OUT_DIR.format(proj_var:name), exist_ok=True)
 
     foreach src in files {
+    try {
       dest = OUT_DIR.format(proj_var:name) + src[slice(4, None)]  // slice first 4 chars "src/" which is the base folder
       dest = dest[slice(0-2)] + "py"                              // slice last 2 chars "co" and replace with .py
       verbose("{} -> {}".format(src, dest))
@@ -68,6 +70,13 @@ fn main() {
       outf = open(dest, "w")
       outf.write(preludes + parse_str(source))
       outf.close()
+    } catch Exception e {
+      if (str(e)).startswith("parser:") {
+        [_, pos, msg] = (str(e)).split(":")
+        pos = ( source[slice(0, int(pos))] ).count("\n") + 1
+        print("parser error: {} ln {}: {}".format(src, pos, msg))
+      }
+    }
     }
 
 
@@ -77,6 +86,10 @@ fn main() {
       proj_var:postprocess()
     }
   }
+} catch Exception e {
+  print("error: {}".format(e))
+  sys.exit(1)
+}
 }
 
 if __name__ == "__main__" { main() }

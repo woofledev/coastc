@@ -12,7 +12,7 @@ class Parser:
   def _expect(self,tok,err):
     prev = self._pop()
     if (not(prev) or (prev[1] != tok)):
-      raise(Exception("parser: {}, got {}".format(err,prev[0])))
+      raise(Exception("parser:{}: {}, got {}".format(prev[2],err,prev[0])))
 
     return prev
 
@@ -71,7 +71,7 @@ class Parser:
       if ((args[i]["t"] == "Word") or (args[i]["t"] == "Assign")):
         params.append(args[i])
       else:
-        raise(Exception("parser: expected fn params to be Word/Assign"))
+        raise(Exception("parser:{}: expected fn params to be Word/Assign".format(self.tokens[0][2])))
 
       i = (i + 1)
     return Nodes["Lambda"](params,self._block())
@@ -162,7 +162,7 @@ class Parser:
         computed = False
         prop = self._expr_final()
         if (prop["t"] != "Word"):
-          raise(Exception("parser: expected dot op to be followed by Word"))
+          raise(Exception("parser:{}: expected dot op to be followed by Word".format(self.tokens[0][2])))
 
       elif (op[1] == Tokens["Colon"]):
         computed = True
@@ -192,7 +192,7 @@ class Parser:
       self._expect(Tokens["PClose"],"expected )")
       return val
     else:
-      raise(Exception("parser: unexpected token '{}'".format(self.tokens[0][0])))
+      raise(Exception("parser:{}: unexpected token '{}'".format(self.tokens[0][2],self.tokens[0][0])))
 
 
   def _stmt_import(self):
@@ -213,7 +213,7 @@ class Parser:
       if ((args[i]["t"] == "Word") or (args[i]["t"] == "Assign")):
         params.append(args[i])
       else:
-        raise(Exception("parser: expected fn params to be Word/Assign"))
+        raise(Exception("parser:{}: expected fn params to be Word/Assign".format(self.tokens[0][2])))
 
       i = (i + 1)
     return Nodes["FnStmt"](name,params,self._block(),isAsync)
