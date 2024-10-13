@@ -3,8 +3,7 @@ import sys,argparse
 
 
 CO_GLOB = "src/**/*.co"
-OUT_DIR = "dist/{}/"
-STD_FEATURES = {"bools": "true, false, null = True, False, None","exargs": "def exargs(f): return (lambda *a, **kw: f(list(a), kw))","using": "def using(res, cb):\n  with res: cb(res)",}
+STD_FEATURES = {"bools": "true, false, null = True, False, None","using": "def using(res, cb):\n  with res: cb(res)","exargs": "def exargs(f): return (lambda *a, **kw: f(list(a), kw))","unstruct": "def unstruct(ns, *args): return [ns[i] for i in args]",}
 def parse_str(s):
   parser = lparse.Parser()
   cg = py_codegen.Codegen()
@@ -41,6 +40,7 @@ def main():
 
     files = glob.glob(CO_GLOB,recursive = True)
     verbose("globbed {} files from {}".format(len(files),CO_GLOB))
+    OUT_DIR = "dist/{}/"
     if ("out_dir" in proj_var):
       OUT_DIR = proj_var["out_dir"]
 

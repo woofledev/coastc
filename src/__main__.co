@@ -4,8 +4,9 @@ import [sys, argparse]
 CO_GLOB = "src/**/*.co"
 STD_FEATURES = {
   bools:  "true, false, null = True, False, None",
+  using:  "def using(res, cb):\n  with res: cb(res)",
   exargs: "def exargs(f): return (lambda *a, **kw: f(list(a), kw))",
-  using:  "def using(res, cb):\n  with res: cb(res)"
+  unstruct: "def unstruct(ns, *args): return [ns[i] for i in args]",
 }
 
 fn parse_str(s) {
