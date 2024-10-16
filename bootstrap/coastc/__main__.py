@@ -1,12 +1,20 @@
 import lparse,py_codegen,glob,os
 import sys,argparse
+def __lambda_1(node,c):
+  c.out = (c.out + "*")
+  c.run(node["args"][0])
+def __lambda_2(node,c):
+  c.out = (c.out + "**")
+  c.run(node["args"][0])
 
 
 CO_GLOB = "src/**/*.co"
-STD_FEATURES = {"bools": "true, false, null = True, False, None","using": "def using(res, cb):\n  with res: cb(res)","exargs": "def exargs(f): return (lambda *a, **kw: f(list(a), kw))","unstruct": "def unstruct(ns, *args): return [ns[i] for i in args]",}
-def parse_str(s):
+STD_FEATURES = {"bools": "true, false, null = True, False, None","using": "def using(res, cb):\n  with res: cb(res)","exargs": "def exargs(f): return (lambda *a, **kw: f(list(a), kw))","unstruct": "def unstruct(ns, *args): return [ns[i] for i in args]","unpack": "",}
+FEAT_UNPACK = {"unpack": __lambda_1,"unpack_kv": __lambda_2,}
+def parse_str(s,custom = {}):
   parser = lparse.Parser()
   cg = py_codegen.Codegen()
+  cg.custom_fn.update(custom)
   return cg.run(parser.parse(s))
 
 def main():
@@ -46,6 +54,10 @@ def main():
         OUT_DIR = proj_var["out_dir"]
 
       os.makedirs(OUT_DIR.format(proj_var["name"]),exist_ok = True)
+      CUST_FEATURES = {}
+      if ("unpack" in proj_var.get("std_features",[])):
+        CUST_FEATURES.update(FEAT_UNPACK)
+
       
       for src in files:
         try:
@@ -57,7 +69,7 @@ def main():
           source = inf.read()
           inf.close()
           outf = open(dest,"w")
-          outf.write((preludes + parse_str(source)))
+          outf.write((preludes + parse_str(source,CUST_FEATURES)))
           outf.close()
         except Exception as e:
           if str(e).startswith("parser:"):

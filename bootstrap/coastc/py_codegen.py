@@ -13,10 +13,14 @@ def __lambda_1(val):
 try_float = __lambda_1
 class Codegen:
   def __init__(self):
+    def __lambda_1(node,c):
+      c.out = (c.out + node["args"][0]["val"])
     self.lambda_c = 0
     self.indent_c = 0
     self.head = ""
     self.out = ""
+    self.custom_fn = {}
+    self.custom_fn["__inline"] = __lambda_1
 
   def idt(self):
     return ("  " * self.indent_c)
@@ -24,12 +28,14 @@ class Codegen:
   def parse_block(self,body):
     cg = Codegen()
     cg.indent_c = (self.indent_c + 1)
+    cg.custom_fn = self.custom_fn
     return cg.run({"t": "Main","body": body,})
 
   def do_args(self,args):
     cg = Codegen()
     cg.indent_c = self.indent_c
     cg.lambda_c = self.lambda_c
+    cg.custom_fn = self.custom_fn
     i = 0
     while (i < len(args)):
       cg.run(args[i])
@@ -123,8 +129,8 @@ class Codegen:
       self.out = (self.out + " as {}:\n".format(node["asVar"][1]))
       self.out = (self.out + self.parse_block(node["alt"]))
     elif (node["t"] == "Fcall"):
-      if ((node["caller"]["t"] == "Word") and (node["caller"]["val"] == "__inline")):
-        self.out = (self.out + node["args"][0]["val"])
+      if ((node["caller"]["t"] == "Word") and (node["caller"]["val"] in self.custom_fn)):
+        self.custom_fn[node["caller"]["val"]](node,self)
       else:
         run(node["caller"])
         self.out = (self.out + "(")

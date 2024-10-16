@@ -7,11 +7,19 @@ STD_FEATURES = {
   using:  "def using(res, cb):\n  with res: cb(res)",
   exargs: "def exargs(f): return (lambda *a, **kw: f(list(a), kw))",
   unstruct: "def unstruct(ns, *args): return [ns[i] for i in args]",
+  unpack: "",
 }
 
-fn parse_str(s) {
+FEAT_UNPACK = {
+  unpack: >(node,c) { c.out = c.out + "*"  c.run(node:args[0]) },
+  unpack_kv: >(node,c) { c.out = c.out + "**"  c.run(node:args[0]) },
+}
+
+
+fn parse_str(s, custom = {}) {
   parser = lparse.Parser()
   cg = py_codegen.Codegen()
+  cg.custom_fn.update(custom)
   return cg.run(parser.parse(s))
 }
 
@@ -55,6 +63,9 @@ try {
     if "out_dir" in proj_var { OUT_DIR = proj_var:out_dir }
     os.makedirs(OUT_DIR.format(proj_var:name), exist_ok=True)
 
+    CUST_FEATURES = {}
+    if "unpack" in proj_var.get("std_features", []) { CUST_FEATURES.update(FEAT_UNPACK) }
+
     foreach src in files {
     try {
       dest = OUT_DIR.format(proj_var:name) + src[slice(4, None)]  // slice first 4 chars "src/" which is the base folder
@@ -68,7 +79,7 @@ try {
       inf.close()
 
       outf = open(dest, "w")
-      outf.write(preludes + parse_str(source))
+      outf.write(preludes + parse_str(source, CUST_FEATURES))
       outf.close()
     } catch Exception e {
       if (str(e)).startswith("parser:") {

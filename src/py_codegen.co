@@ -15,12 +15,16 @@ class Codegen {
     self.indent_c = 0
     self.head = ""
     self.out = ""
+
+    self.custom_fn = {}
+    self.custom_fn:__inline = >(node, c) { c.out = c.out + node:args[0]:val  /* str type */ }
   }
 
   fn idt(self) { return "  " * self.indent_c }
   fn parse_block(self, body) {
     cg = Codegen()
     cg.indent_c = self.indent_c+1
+    cg.custom_fn = self.custom_fn
     return cg.run({t: "Main", body})
   }
 
@@ -28,6 +32,7 @@ class Codegen {
     cg = Codegen()
     cg.indent_c = self.indent_c
     cg.lambda_c = self.lambda_c
+    cg.custom_fn = self.custom_fn
     for (i=0; i<len(args); i=i+1) {
       cg.run(args[i])
       cg.out = cg.out + ","
@@ -133,8 +138,8 @@ class Codegen {
 
   
     } else if (node["t"] == "Fcall") {
-      if (node["caller"]["t"] == "Word" & node["caller"]["val"] == "__inline") {
-        self.out = self.out + node["args"][0]["val"]  // str type
+      if (node:caller:t == "Word" & node:caller:val in self.custom_fn) {
+        self.custom_fn[node:caller:val](node, self)
       } else {
         run(node["caller"])
         self.out = self.out + "("
