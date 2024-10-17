@@ -9,7 +9,7 @@ def __lambda_2(node,c):
 
 
 CO_GLOB = "src/**/*.co"
-STD_FEATURES = {"bools": "true, false, null = True, False, None","using": "def using(res, cb):\n  with res: cb(res)","exargs": "def exargs(f): return (lambda *a, **kw: f(list(a), kw))","unstruct": "def unstruct(ns, *args): return [ns[i] for i in args]","unpack": "",}
+STD_FEATURES = {"bools": "true, false, null = True, False, None","using": "def using(res, cb):\n  with res: return cb(res)","exargs": "def exargs(f): return (lambda *a, **kw: f(list(a), kw))","unstruct": "def unstruct(ns, *args): return [ns[i] for i in args]","unpack": "",}
 FEAT_UNPACK = {"unpack": __lambda_1,"unpack_kv": __lambda_2,}
 def parse_str(s,custom = {}):
   parser = lparse.Parser()
