@@ -75,8 +75,11 @@ def main():
           if str(e).startswith("parser:"):
             [_,pos,msg,] = str(e).split(":")
             pos = (source[slice(0,int(pos))].count("\n") + 1)
-            print("parser error: {} ln {}: {}".format(src,pos,msg))
+            print("Error: {} ln {}: {}".format(src,pos,msg))
+          else:
+            print("Error: {}".format(str(e)))
 
+          sys.exit(1)
 
 
       if ("postprocess" in proj_var):
